@@ -1,25 +1,136 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet';
+import L from 'leaflet';
 import './App.css';
+
+// Fix for default markers in Leaflet
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+});
+
+// Custom icons for different types of markers
+const pickupIcon = new L.Icon({
+  iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  shadowSize: [41, 41]
+});
+
+const dropoffIcon = new L.Icon({
+  iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  shadowSize: [41, 41]
+});
+
+// Location data for demo purposes (you can replace with real coordinates)
+const locationCoordinates = {
+  "City Center": [12.9716, 77.5946],
+  "University": [12.9342, 77.6095],
+  "Mall": [12.9698, 77.7500],
+  "Tech Park": [12.8456, 77.6628],
+  "Airport": [13.1986, 77.7066],
+  "Hotel Zone": [12.9721, 77.5933],
+  "Residential Area": [12.9352, 77.6245],
+  "Shopping District": [12.9667, 77.5667],
+  "Suburbs": [12.8901, 77.5845],
+  "Metro Station": [12.9567, 77.6012],
+  "IT Hub": [12.8423, 77.6634],
+  "Business District": [12.9716, 77.5946]
+};
+
+function MapComponent({ rides, showRoute = false, selectedRide = null }) {
+  const centerPosition = [12.9716, 77.5946]; // Bangalore center
+
+  const getCoordinates = (locationName) => {
+    return locationCoordinates[locationName] || centerPosition;
+  };
+
+  return (
+    <div className="map-container">
+      <MapContainer center={centerPosition} zoom={11} className="ride-map">
+        <TileLayer
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        />
+        
+        {rides && rides.map((ride) => {
+          const pickupCoords = getCoordinates(ride.from);
+          const dropoffCoords = getCoordinates(ride.to);
+          
+          return (
+            <React.Fragment key={ride.id}>
+              {/* Pickup Marker */}
+              <Marker position={pickupCoords} icon={pickupIcon}>
+                <Popup>
+                  <div className="map-popup">
+                    <h4>🚗 Pickup Location</h4>
+                    <p><strong>{ride.from}</strong></p>
+                    <p>Driver: {ride.driver}</p>
+                    <p>Time: {ride.time}</p>
+                    <p>Date: {ride.date}</p>
+                    <p>Price: ₹{ride.price}</p>
+                  </div>
+                </Popup>
+              </Marker>
+              
+              {/* Dropoff Marker */}
+              <Marker position={dropoffCoords} icon={dropoffIcon}>
+                <Popup>
+                  <div className="map-popup">
+                    <h4>🏁 Drop-off Location</h4>
+                    <p><strong>{ride.to}</strong></p>
+                    <p>Driver: {ride.driver}</p>
+                    <p>Duration: {ride.estimatedDuration || 'N/A'}</p>
+                    <p>Seats: {ride.seats} available</p>
+                  </div>
+                </Popup>
+              </Marker>
+              
+              {/* Route Line */}
+              {showRoute && (
+                <Polyline 
+                  positions={[pickupCoords, dropoffCoords]}
+                  color="#3498db"
+                  weight={4}
+                  opacity={0.7}
+                  dashArray="10, 10"
+                />
+              )}
+            </React.Fragment>
+          );
+        })}
+        
+        {/* Selected Ride Route */}
+        {selectedRide && (
+          <>
+            <Polyline 
+              positions={[
+                getCoordinates(selectedRide.from),
+                getCoordinates(selectedRide.to)
+              ]}
+              color="#e74c3c"
+              weight={6}
+              opacity={0.8}
+            />
+          </>
+        )}
+      </MapContainer>
+    </div>
+  );
+}
 
 function LoginPage({ onLogin, registeredUser }) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-
-  const handleSendOTP = (e) => {
-    e.preventDefault();
-    if (!mobileNumber || mobileNumber.length !== 10) {
-      setError('Please enter a valid 10-digit mobile number');
-      return;
-    }
-    // Generate a random 6-digit OTP
-    const generatedOTP = Math.floor(100000 + Math.random() * 900000).toString();
-    setVerificationCode(generatedOTP);
-    setOtpSent(true);
-    setError('');
-    // In a real app, you would send this OTP to the user's phone
-    console.log('OTP sent:', generatedOTP);
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -46,30 +157,36 @@ function LoginPage({ onLogin, registeredUser }) {
 
   return (
     <div className="form-container">
-      <h2>Login</h2>
+      <h2>🔐 Login</h2>
       <form onSubmit={handleSubmit}>
         <div>
-          <label>Username:</label><br />
-          <input
-            type="text"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            required
-            placeholder="Enter your username"
-          />
+          <label>Username:</label>
+          <div className="input-wrapper">
+            <span className="input-icon">👤</span>
+            <input
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              required
+              placeholder="Enter your username"
+            />
+          </div>
         </div>
         <div>
-          <label>Password:</label><br />
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            placeholder="Your password"
-          />
+          <label>Password:</label>
+          <div className="input-wrapper">
+            <span className="input-icon">🔒</span>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              placeholder="Your password"
+            />
+          </div>
         </div>
-        {error && <p className="error">{error}</p>}
-        <button type="submit" className="login-btn">Login</button>
+        {error && <p className="error">❌ {error}</p>}
+        <button type="submit" className="login-btn">🚀 Login</button>
       </form>
     </div>
   );
@@ -111,47 +228,58 @@ function RegistrationPage({ onRegister }) {
 
   return (
     <div className="form-container">
-      <h2>Register</h2>
+      <h2>📝 Register</h2>
       <form onSubmit={handleSubmit}>
         <div>
-          <label>Username:</label><br />
-          <input
-            type="text"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            required
-            placeholder="Choose a username"
-          />
+          <label>Username:</label>
+          <div className="input-wrapper">
+            <span className="input-icon">👤</span>
+            <input
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              required
+              placeholder="Choose a username"
+            />
+          </div>
         </div>
         <div>
-          <label>Password:</label><br />
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            placeholder="Create a password"
-          />
+          <label>Password:</label>
+          <div className="input-wrapper">
+            <span className="input-icon">🔒</span>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              placeholder="Create a password"
+            />
+          </div>
         </div>
         <div>
-          <label>Confirm Password:</label><br />
-          <input
-            type="password"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            required
-            placeholder="Confirm your password"
-          />
+          <label>Confirm Password:</label>
+          <div className="input-wrapper">
+            <span className="input-icon">🔐</span>
+            <input
+              type="password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              required
+              placeholder="Confirm your password"
+            />
+          </div>
         </div>
 
-        {error && <p className="error">{error}</p>}
-        {success && <p className="success">{success}</p>}
-        <button type="submit">Register</button>
+        {error && <p className="error">❌ {error}</p>}
+        {success && <p className="success">✅ {success}</p>}
+        <button type="submit" className="login-btn">🎉 Register</button>
       </form>
       {success && (
         <div className="registration-success">
-          <h3>Registration Successful!</h3>
-          <p>Redirecting to login...</p>
+          <div>
+            <h3>🎉 Registration Successful!</h3>
+            <p>✨ Redirecting to login...</p>
+          </div>
         </div>
       )}
     </div>
@@ -294,9 +422,14 @@ function ProfilePage({ user, onClose, onUpdate }) {
 }
 
 function App() {
+  console.log("App component is rendering...");
+  
   const [isRegistering, setIsRegistering] = useState(false);
   const [user, setUser] = useState(null);
   const [registeredUser, setRegisteredUser] = useState(null);
+  
+  console.log("User state:", user);
+  console.log("Is registering:", isRegistering);
   const [showProfile, setShowProfile] = useState(false);
   const [showOfferRide, setShowOfferRide] = useState(false);
   const [showFindRide, setShowFindRide] = useState(false);
@@ -522,6 +655,54 @@ function App() {
     passengers: "1"
   });
 
+  // Auto-refresh effect
+  useEffect(() => {
+    if (!autoRefresh || !showSearchResults) return;
+    
+    const interval = setInterval(() => {
+      refreshSearchResults();
+    }, 30000); // Refresh every 30 seconds
+    
+    return () => clearInterval(interval);
+  }, [autoRefresh, showSearchResults, searchRide, availableRides]);
+
+  // Simulate occasional new rides (for demo purposes)
+  useEffect(() => {
+    const simulateNewRides = () => {
+      // Only simulate when search results are visible
+      if (!showSearchResults) return;
+      
+      // Random chance to add a new ride
+      if (Math.random() < 0.3) { // 30% chance
+        const newRideTemplates = [
+          { from: "City Center", to: "Airport", price: 80, driver: "New Driver 1", vehicle: "Honda Civic (Blue)" },
+          { from: "Tech Park", to: "Mall", price: 35, driver: "New Driver 2", vehicle: "Toyota Corolla (Red)" },
+          { from: "University", to: "Shopping District", price: 40, driver: "New Driver 3", vehicle: "Hyundai i20 (White)" }
+        ];
+        
+        const template = newRideTemplates[Math.floor(Math.random() * newRideTemplates.length)];
+        const newRide = {
+          ...template,
+          id: Date.now(), // Unique ID
+          date: searchRide.date || "2025-08-05",
+          time: `${Math.floor(Math.random() * 12) + 9}:${Math.random() < 0.5 ? '00' : '30'}`,
+          seats: Math.floor(Math.random() * 3) + 2, // 2-4 seats
+          status: "Upcoming",
+          notes: "Newly added ride",
+          driverRating: 4.5 + Math.random() * 0.4,
+          estimatedDuration: `${Math.floor(Math.random() * 20) + 20} mins`
+        };
+        
+        setAvailableRides(prev => [...prev, newRide]);
+      }
+    };
+    
+    // Run simulation every 2 minutes
+    const simulationInterval = setInterval(simulateNewRides, 120000);
+    
+    return () => clearInterval(simulationInterval);
+  }, [showSearchResults, searchRide.date]);
+
   const handleOfferRide = (e) => {
     e.preventDefault();
     const ride = {
@@ -571,13 +752,80 @@ function App() {
       return timeA - timeB;
     });
 
-    // Update available rides to show only filtered results
-    setAvailableRides(filteredRides);
-    setShowFindRide(false);
+    // Store search results and show them
+    setSearchResults(filteredRides);
+    setShowSearchResults(true);
+    setLastSearchTime(new Date());
+    // Keep the Find a Ride form open to show results
+  };
+
+  // Function to refresh search results
+  const refreshSearchResults = () => {
+    if (!showSearchResults || !lastSearchTime) return;
+    
+    // Re-run the search with current criteria
+    const filteredRides = availableRides.filter(ride => {
+      const fromMatch = ride.from.toLowerCase().includes(searchRide.from.toLowerCase());
+      const toMatch = ride.to.toLowerCase().includes(searchRide.to.toLowerCase());
+      const dateMatch = !searchRide.date || ride.date === searchRide.date;
+      const seatsMatch = ride.seats >= parseInt(searchRide.passengers);
+      return fromMatch && toMatch && dateMatch && seatsMatch;
+    });
+
+    filteredRides.sort((a, b) => {
+      const timeA = new Date(`${a.date} ${a.time}`);
+      const timeB = new Date(`${b.date} ${b.time}`);
+      return timeA - timeB;
+    });
+
+    // Check for changes and notify user
+    const currentIds = searchResults.map(r => r.id);
+    const newIds = filteredRides.map(r => r.id);
+    
+    // Check for new rides
+    const newRides = filteredRides.filter(r => !currentIds.includes(r.id));
+    if (newRides.length > 0) {
+      addNotification(`🆕 ${newRides.length} new ride${newRides.length > 1 ? 's' : ''} available!`, 'success');
+    }
+    
+    // Check for seat changes
+    const seatChanges = filteredRides.filter(newRide => {
+      const oldRide = searchResults.find(r => r.id === newRide.id);
+      return oldRide && oldRide.seats !== newRide.seats;
+    });
+    
+    if (seatChanges.length > 0 && seatChanges.some(r => r.seats < searchResults.find(or => or.id === r.id)?.seats)) {
+      addNotification(`⚠️ Seat availability updated for some rides`, 'warning');
+    }
+
+    setSearchResults(filteredRides);
+  };
+
+  // Function to add notifications
+  const addNotification = (message, type = 'info') => {
+    const notification = {
+      id: Date.now(),
+      message,
+      type,
+      timestamp: new Date()
+    };
+    setNotifications(prev => [notification, ...prev.slice(0, 4)]); // Keep only 5 notifications
+    
+    // Auto-remove notification after 5 seconds
+    setTimeout(() => {
+      setNotifications(prev => prev.filter(n => n.id !== notification.id));
+    }, 5000);
   };
 
   const [bookingSuccess, setBookingSuccess] = useState(false);
   const [lastBookedId, setLastBookedId] = useState(null);
+  const [searchResults, setSearchResults] = useState([]);
+  const [showSearchResults, setShowSearchResults] = useState(false);
+  const [searchBookingSuccess, setSearchBookingSuccess] = useState(false);
+  const [showMap, setShowMap] = useState(false);
+  const [lastSearchTime, setLastSearchTime] = useState(null);
+  const [autoRefresh, setAutoRefresh] = useState(false);
+  const [notifications, setNotifications] = useState([]);
 
   const handleBookRide = (ride) => {
     if (ride.seats <= 0) return;
@@ -616,6 +864,59 @@ function App() {
     setTimeout(() => setBookingSuccess(false), 3000);
   };
 
+  const handleBookRideFromSearch = (ride) => {
+    if (ride.seats <= 0) return;
+
+    // Create a new booking entry
+    const booking = {
+      id: rideHistory.length + 1,
+      date: ride.date,
+      time: ride.time,
+      from: ride.from,
+      to: ride.to,
+      amount: ride.price,
+      status: "upcoming",
+      driver: ride.driver,
+      vehicle: ride.vehicle,
+      passengers: parseInt(searchRide.passengers),
+      paymentMethod: "Card",
+      bookingDate: new Date().toISOString().split('T')[0]
+    };
+
+    // Add to ride history
+    setRideHistory([booking, ...rideHistory]);
+
+    // Update available seats in both main rides and search results
+    const updatedRides = availableRides.map(r => {
+      if (r.id === ride.id) {
+        return { ...r, seats: r.seats - parseInt(searchRide.passengers) };
+      }
+      return r;
+    });
+    setAvailableRides(updatedRides);
+    
+    // Update search results as well
+    const updatedSearchResults = searchResults.map(r => {
+      if (r.id === ride.id) {
+        return { ...r, seats: r.seats - parseInt(searchRide.passengers) };
+      }
+      return r;
+    });
+    setSearchResults(updatedSearchResults);
+    
+    // Show success message specific to search booking
+    setSearchBookingSuccess(true);
+    setTimeout(() => setSearchBookingSuccess(false), 4000);
+    
+    // Add notification
+    addNotification(`🎉 Ride booked successfully! ${ride.from} → ${ride.to} on ${ride.date}`, 'success');
+    
+    // If ride is now full, notify
+    if (ride.seats - parseInt(searchRide.passengers) === 0) {
+      addNotification(`ℹ️ This ride is now fully booked`, 'info');
+    }
+  };
+
   const handleRegistration = (userData) => {
     const registeredData = {
       username: userData.username,
@@ -626,6 +927,7 @@ function App() {
   };
 
   if (user) {
+    console.log("User is logged in, showing main app");
     return (
       <>
         <div className="bubble"></div>
@@ -657,103 +959,9 @@ function App() {
 
           {!showOfferRide && !showFindRide && (
             <div className="welcome-content">
-              <div className="available-rides">
-                <div className="rides-header">
-                  <h3>🚗 Available Rides Nearby</h3>
-                  <button 
-                    className="reset-search-btn"
-                    onClick={() => window.location.reload()}
-                  >
-                    <span className="icon">🔄</span> Reset Search
-                  </button>
-                </div>
-                <div className="ride-cards">
-                  {availableRides.map((ride, index) => (
-                    <div className={`ride-item ${lastBookedId === ride.id ? 'new-booking' : ''}`} key={index}>
-                      <div className="ride-header">
-                        <div className="ride-date">{ride.date}</div>
-                        <span className={`seats-indicator ${
-                          ride.seats > 2 ? 'available' : ride.seats > 0 ? 'limited' : 'full'
-                        }`}>
-                          {ride.seats} {ride.seats === 1 ? 'seat' : 'seats'} left
-                        </span>
-                      </div>
-                      <div className="ride-details">
-                        <div className="ride-detail-item">
-                          <span className="detail-icon">🚗</span>
-                          <div className="detail-content">
-                            <div className="detail-label">Route</div>
-                            <div className="detail-value">{ride.from} → {ride.to}</div>
-                          </div>
-                        </div>
-                        <div className="ride-detail-item">
-                          <span className="detail-icon">🕒</span>
-                          <div className="detail-content">
-                            <div className="detail-label">Departure</div>
-                            <div className="detail-value">{ride.time}</div>
-                          </div>
-                        </div>
-                        <div className="ride-detail-item">
-                          <span className="detail-icon">⏱️</span>
-                          <div className="detail-content">
-                            <div className="detail-label">Est. Duration</div>
-                            <div className="detail-value">{ride.estimatedDuration}</div>
-                          </div>
-                        </div>
-                        <div className="ride-detail-item">
-                          <span className="detail-icon">💰</span>
-                          <div className="detail-content">
-                            <div className="detail-label">Price per seat</div>
-                            <div className="detail-value">₹{ride.price}</div>
-                          </div>
-                        </div>
-                        <div className="ride-detail-item">
-                          <span className="detail-icon">💺</span>
-                          <div className="detail-content">
-                            <div className="detail-label">Available Seats</div>
-                            <div className="detail-value">{ride.seats} seats</div>
-                          </div>
-                        </div>
-                        <div className="ride-detail-item">
-                          <span className="detail-icon">👤</span>
-                          <div className="detail-content">
-                            <div className="detail-label">Driver</div>
-                            <div className="detail-value">
-                              {ride.driver}
-                              <span className="driver-rating">
-                                ⭐ {ride.driverRating}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="ride-detail-item">
-                          <span className="detail-icon">🚘</span>
-                          <div className="detail-content">
-                            <div className="detail-label">Vehicle</div>
-                            <div className="detail-value">{ride.vehicle}</div>
-                          </div>
-                        </div>
-                        <div className="ride-detail-item">
-                          <span className="detail-icon">📝</span>
-                          <div className="detail-content">
-                            <div className="detail-label">Notes</div>
-                            <div className="detail-value">{ride.notes}</div>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="ride-actions">
-                        <button className="ride-action-btn action-view">View Details</button>
-                        <button 
-                          className="ride-action-btn action-cancel"
-                          onClick={() => handleBookRide(ride)}
-                          disabled={ride.seats === 0}
-                        >
-                          {ride.seats > 0 ? 'Book Now' : 'Fully Booked'}
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+              <div className="welcome-message">
+                <h3>🚗 Welcome to Share Ride!</h3>
+                <p>Choose an option above to get started with your ride sharing experience.</p>
               </div>
             </div>
           )}
@@ -894,9 +1102,211 @@ function App() {
                 </div>
                 <div className="form-actions">
                   <button type="submit" className="submit-ride-btn">Search Rides</button>
-                  <button type="button" className="cancel-ride-btn" onClick={() => setShowFindRide(false)}>Cancel</button>
+                  <button type="button" className="clear-form-btn" onClick={() => {
+                    setSearchRide({
+                      from: '',
+                      to: '',
+                      date: '',
+                      passengers: '1'
+                    });
+                    setShowSearchResults(false);
+                    setSearchResults([]);
+                    setShowMap(false);
+                  }}>Clear Form</button>
+                  <button type="button" className="cancel-ride-btn" onClick={() => {
+                    setShowFindRide(false);
+                    setShowSearchResults(false);
+                    setSearchResults([]);
+                  }}>Cancel</button>
                 </div>
               </form>
+              
+              {/* Search Results Section */}
+              {showSearchResults && (
+                <div className="search-results-section">
+                  {/* Notifications */}
+                  {notifications.length > 0 && (
+                    <div className="notifications-container">
+                      {notifications.map(notification => (
+                        <div key={notification.id} className={`notification notification-${notification.type}`}>
+                          <span className="notification-message">{notification.message}</span>
+                          <button 
+                            className="notification-close"
+                            onClick={() => setNotifications(prev => prev.filter(n => n.id !== notification.id))}
+                          >
+                            ×
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  
+                  {searchBookingSuccess && (
+                    <div className="search-booking-success">
+                      🎉 Ride booked successfully! Your booking has been confirmed and added to "My Rides"
+                    </div>
+                  )}
+                  
+                  <div className="search-results-header">
+                    <div className="search-results-info">
+                      <h4>🔍 Search Results ({searchResults.length} ride{searchResults.length !== 1 ? 's' : ''} found)</h4>
+                      {lastSearchTime && (
+                        <p className="last-updated">
+                          Last updated: {lastSearchTime.toLocaleTimeString()}
+                        </p>
+                      )}
+                    </div>
+                    <div className="search-header-actions">
+                      <button 
+                        className="refresh-btn"
+                        onClick={refreshSearchResults}
+                        title="Refresh search results"
+                      >
+                        🔄 Refresh
+                      </button>
+                      <label className="auto-refresh-toggle">
+                        <input
+                          type="checkbox"
+                          checked={autoRefresh}
+                          onChange={(e) => setAutoRefresh(e.target.checked)}
+                        />
+                        Auto-refresh
+                      </label>
+                      <div className="map-toggle-container">
+                        <button 
+                          className="map-toggle-btn"
+                          onClick={() => setShowMap(!showMap)}
+                        >
+                          {showMap ? '📋 Show List' : '🗺️ Show Map'}
+                        </button>
+                      </div>
+                      <button 
+                        className="new-search-btn"
+                        onClick={() => {
+                          setShowSearchResults(false);
+                          setSearchResults([]);
+                          setShowMap(false);
+                          setNotifications([]);
+                          // Keep the Find a Ride form visible for new search
+                          setShowFindRide(true);
+                        }}
+                      >
+                        New Search
+                      </button>
+                    </div>
+                  </div>
+                  
+                  {showMap && searchResults.length > 0 && (
+                    <div className="map-container">
+                      <MapComponent rides={searchResults} />
+                      <div className="route-legend">
+                        <div className="legend-item">
+                          <span className="legend-dot pickup"></span>
+                          <span>Pickup Points</span>
+                        </div>
+                        <div className="legend-item">
+                          <span className="legend-dot dropoff"></span>
+                          <span>Drop-off Points</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {searchResults.length > 0 ? (
+                    <div className="search-ride-cards">
+                      {searchResults.map((ride) => (
+                        <div key={ride.id} className="search-ride-card">
+                          <div className="ride-card-header">
+                            <div className="ride-route">
+                              <span className="route-from">{ride.from}</span>
+                              <span className="route-arrow">→</span>
+                              <span className="route-to">{ride.to}</span>
+                            </div>
+                            <div className="ride-price-tag">₹{ride.price}</div>
+                          </div>
+                          
+                          <div className="ride-card-details">
+                            <div className="detail-row">
+                              <span className="detail-icon">📅</span>
+                              <span className="detail-text">{new Date(ride.date).toLocaleDateString('en-US', { 
+                                weekday: 'short',
+                                year: 'numeric',
+                                month: 'short',
+                                day: 'numeric'
+                              })} at {ride.time}</span>
+                            </div>
+                            
+                            <div className="detail-row">
+                              <span className="detail-icon">👤</span>
+                              <span className="detail-text">{ride.driver}</span>
+                              {ride.driverRating && (
+                                <span className="driver-rating">⭐ {ride.driverRating}</span>
+                              )}
+                            </div>
+                            
+                            <div className="detail-row">
+                              <span className="detail-icon">🚗</span>
+                              <span className="detail-text">{ride.vehicle}</span>
+                            </div>
+                            
+                            <div className="detail-row">
+                              <span className="detail-icon">💺</span>
+                              <span className="detail-text">
+                                {ride.seats > 0 ? `${ride.seats} seat${ride.seats !== 1 ? 's' : ''} available` : 'Fully booked'}
+                              </span>
+                              {ride.seats <= 2 && ride.seats > 0 && (
+                                <span className="low-seats-warning">⚠️ Few seats left!</span>
+                              )}
+                            </div>
+                            
+                            {ride.estimatedDuration && (
+                              <div className="detail-row">
+                                <span className="detail-icon">⏱️</span>
+                                <span className="detail-text">{ride.estimatedDuration}</span>
+                              </div>
+                            )}
+                            
+                            {ride.notes && (
+                              <div className="detail-row">
+                                <span className="detail-icon">📝</span>
+                                <span className="detail-text">{ride.notes}</span>
+                              </div>
+                            )}
+                          </div>
+                          
+                          <div className="ride-card-actions">
+                            <button 
+                              className={`book-ride-btn ${ride.seats <= 0 ? 'disabled' : ''}`}
+                              onClick={() => handleBookRideFromSearch(ride)}
+                              disabled={ride.seats <= 0}
+                            >
+                              {ride.seats <= 0 ? 'Fully Booked' : `Book for ${searchRide.passengers} passenger${searchRide.passengers !== '1' ? 's' : ''}`}
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="no-results">
+                      <div className="no-results-icon">😔</div>
+                      <h4>No rides found</h4>
+                      <p>Try adjusting your search criteria or check back later for new rides.</p>
+                      <button 
+                        className="search-again-btn"
+                        onClick={() => {
+                          setShowSearchResults(false);
+                          setSearchResults([]);
+                          setShowMap(false);
+                          // Keep the Find a Ride form visible
+                          setShowFindRide(true);
+                        }}
+                      >
+                        🔍 Search Again
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           )}
 
@@ -1260,14 +1670,29 @@ function App() {
     );
   }
 
+  console.log("User is not logged in, showing login/register page");
   return (
     <>
       <div className="bubble"></div>
-      <div className="bubble"></div>
+      <div className="bubble"></div>  
       <div className="bubble"></div>
       <div className="bubble"></div>
       <div className="app-container">
-        <h1 className="app-title">Share Ride<span className="underline"></span></h1>
+        {/* Enhanced Header Section */}
+        <header className="app-header">
+          <div className="header-content">
+            <div className="logo-section">
+              <div className="logo-icon">🚗</div>
+              <h1 className="app-title">Share Ride<span className="underline"></span></h1>
+              <p className="app-tagline">Your journey, shared with care</p>
+            </div>
+            <div className="header-decorations">
+              <div className="decoration-dot"></div>
+              <div className="decoration-dot"></div>
+              <div className="decoration-dot"></div>
+            </div>
+          </div>
+        </header>
         {isRegistering ? (
           <>
             <RegistrationPage onRegister={handleRegistration} />
