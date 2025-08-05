@@ -1202,6 +1202,132 @@ button:hover {
   font-size: 1em;
 }
 
+.issue-details {
+  padding: 20px 0;
+}
+
+.issue-form {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  margin-top: 20px;
+}
+
+.ride-summary {
+  background: rgba(52, 152, 219, 0.1);
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.ride-summary h3 {
+  color: #2980b9;
+  margin-bottom: 10px;
+  font-size: 1.2em;
+}
+
+.ride-summary p {
+  margin: 8px 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.issue-form .form-group {
+  margin-bottom: 20px;
+}
+
+.issue-form label {
+  display: block;
+  margin-bottom: 8px;
+  color: #2c3e50;
+  font-weight: 600;
+}
+
+.issue-form select,
+.issue-form textarea {
+  width: 100%;
+  padding: 12px;
+  border: 2px solid #e1e8ed;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.issue-form select:focus,
+.issue-form textarea:focus {
+  border-color: #3498db;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+}
+
+.severity-options {
+  display: flex;
+  gap: 20px;
+  margin-top: 10px;
+}
+
+.severity-options label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+  font-weight: normal;
+}
+
+.submit-issue-btn,
+.cancel-issue-btn {
+  padding: 12px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.submit-issue-btn {
+  background: #27ae60;
+  color: white;
+  border: none;
+  margin-right: 10px;
+}
+
+.submit-issue-btn:hover {
+  background: #219a52;
+}
+
+.cancel-issue-btn {
+  background: #e74c3c;
+  color: white;
+  border: none;
+}
+
+.cancel-issue-btn:hover {
+  background: #c0392b;
+}
+
+.issue-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 0.85em;
+  margin-right: 8px;
+}
+
+.issue-tag.high {
+  background: rgba(231, 76, 60, 0.1);
+  color: #e74c3c;
+}
+
+.issue-tag.medium {
+  background: rgba(241, 196, 15, 0.1);
+  color: #f39c12;
+}
+
+.issue-tag.low {
+  background: rgba(46, 204, 113, 0.1);
+  color: #27ae60;
+}
+
 .logout-btn {
   background: linear-gradient(45deg, #e74c3c, #c0392b);
 }

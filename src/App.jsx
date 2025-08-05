@@ -302,6 +302,13 @@ function App() {
   const [showFindRide, setShowFindRide] = useState(false);
   const [showMyRides, setShowMyRides] = useState(false);
   const [activeRidesTab, setActiveRidesTab] = useState('upcoming');
+  const [showIssueForm, setShowIssueForm] = useState(false);
+  const [selectedRide, setSelectedRide] = useState(null);
+  const [issueDetails, setIssueDetails] = useState({
+    type: '',
+    description: '',
+    severity: 'medium'
+  });
   const [rideHistory, setRideHistory] = useState([
     {
       id: 1,
@@ -810,13 +817,37 @@ function App() {
                                     </div>
                                   </div>
                                 )}
+
+                                {ride.issues && ride.issues.length > 0 && (
+                                  <div className="issues">
+                                    <h4>Reported Issues</h4>
+                                    {ride.issues.map((issue, index) => (
+                                      <div key={index} className="issue-item">
+                                        <span className={`issue-tag ${issue.severity}`}>
+                                          {issue.type}
+                                        </span>
+                                        <span className={`issue-status ${issue.status}`}>
+                                          {issue.status}
+                                        </span>
+                                        <p>{issue.description}</p>
+                                        <small>Reported: {new Date(issue.reportedAt).toLocaleDateString()}</small>
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
                               </div>
 
                               <div className="history-actions">
                                 <button className="history-action-btn action-receipt">
                                   <span className="icon">📄</span> Receipt
                                 </button>
-                                <button className="history-action-btn action-report">
+                                <button 
+                                  className="history-action-btn action-report"
+                                  onClick={() => {
+                                    setSelectedRide(ride);
+                                    setShowIssueForm(true);
+                                  }}
+                                >
                                   <span className="icon">🚩</span> Report Issue
                                 </button>
                               </div>
@@ -907,6 +938,136 @@ function App() {
               Logout
             </button>
           </div>
+          {showIssueForm && selectedRide && (
+            <div className="profile-overlay">
+              <div className="profile-container">
+                <button className="close-btn" onClick={() => {
+                  setShowIssueForm(false);
+                  setSelectedRide(null);
+                  setIssueDetails({
+                    type: '',
+                    description: '',
+                    severity: 'medium'
+                  });
+                }}>×</button>
+                <h2>🚩 Report an Issue</h2>
+                <div className="issue-details">
+                  <div className="ride-summary">
+                    <h3>Ride Details</h3>
+                    <p><strong>Date:</strong> {selectedRide.date}</p>
+                    <p><strong>Route:</strong> {selectedRide.from} → {selectedRide.to}</p>
+                    <p><strong>Driver:</strong> {selectedRide.driver}</p>
+                  </div>
+                  <form onSubmit={(e) => {
+                    e.preventDefault();
+                    // Update ride history with the issue
+                    const updatedHistory = rideHistory.map(ride => {
+                      if (ride.id === selectedRide.id) {
+                        return {
+                          ...ride,
+                          issues: [...(ride.issues || []), {
+                            ...issueDetails,
+                            id: Date.now(),
+                            reportedAt: new Date().toISOString(),
+                            status: 'pending'
+                          }]
+                        };
+                      }
+                      return ride;
+                    });
+                    setRideHistory(updatedHistory);
+                    setShowIssueForm(false);
+                    setSelectedRide(null);
+                    setIssueDetails({
+                      type: '',
+                      description: '',
+                      severity: 'medium'
+                    });
+                  }} className="issue-form">
+                    <div className="form-group">
+                      <label>Issue Type:</label>
+                      <select
+                        required
+                        value={issueDetails.type}
+                        onChange={(e) => setIssueDetails({...issueDetails, type: e.target.value})}
+                      >
+                        <option value="">Select issue type</option>
+                        <option value="delay">Delay</option>
+                        <option value="behavior">Driver Behavior</option>
+                        <option value="cleanliness">Vehicle Cleanliness</option>
+                        <option value="safety">Safety Concern</option>
+                        <option value="payment">Payment Issue</option>
+                        <option value="other">Other</option>
+                      </select>
+                    </div>
+                    <div className="form-group">
+                      <label>Severity:</label>
+                      <div className="severity-options">
+                        <label>
+                          <input
+                            type="radio"
+                            name="severity"
+                            value="low"
+                            checked={issueDetails.severity === 'low'}
+                            onChange={(e) => setIssueDetails({...issueDetails, severity: e.target.value})}
+                          />
+                          Low
+                        </label>
+                        <label>
+                          <input
+                            type="radio"
+                            name="severity"
+                            value="medium"
+                            checked={issueDetails.severity === 'medium'}
+                            onChange={(e) => setIssueDetails({...issueDetails, severity: e.target.value})}
+                          />
+                          Medium
+                        </label>
+                        <label>
+                          <input
+                            type="radio"
+                            name="severity"
+                            value="high"
+                            checked={issueDetails.severity === 'high'}
+                            onChange={(e) => setIssueDetails({...issueDetails, severity: e.target.value})}
+                          />
+                          High
+                        </label>
+                      </div>
+                    </div>
+                    <div className="form-group">
+                      <label>Description:</label>
+                      <textarea
+                        required
+                        rows="4"
+                        placeholder="Please provide detailed information about the issue..."
+                        value={issueDetails.description}
+                        onChange={(e) => setIssueDetails({...issueDetails, description: e.target.value})}
+                      ></textarea>
+                    </div>
+                    <div className="form-actions">
+                      <button type="submit" className="submit-issue-btn">Submit Report</button>
+                      <button 
+                        type="button" 
+                        className="cancel-issue-btn"
+                        onClick={() => {
+                          setShowIssueForm(false);
+                          setSelectedRide(null);
+                          setIssueDetails({
+                            type: '',
+                            description: '',
+                            severity: 'medium'
+                          });
+                        }}
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
+          )}
           {showProfile && (
             <ProfilePage 
               user={user}
