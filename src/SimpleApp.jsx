@@ -539,12 +539,12 @@ function RegistrationPage({ onRegister }) {
 
   return (
     <div className="form-container">
-      <h2>📝 Register</h2>
+      <h2>� Create Account</h2>
       <form onSubmit={handleSubmit}>
         <div>
           <label>Username:</label>
           <div className="input-wrapper">
-            <span className="input-icon">👤</span>
+            <span className="input-icon">🆔</span>
             <input
               type="text"
               value={username}
@@ -557,7 +557,7 @@ function RegistrationPage({ onRegister }) {
         <div>
           <label>Password:</label>
           <div className="input-wrapper">
-            <span className="input-icon">🔒</span>
+            <span className="input-icon">�</span>
             <input
               type="password"
               value={password}
@@ -570,7 +570,7 @@ function RegistrationPage({ onRegister }) {
         <div>
           <label>Confirm Password:</label>
           <div className="input-wrapper">
-            <span className="input-icon">🔐</span>
+            <span className="input-icon">�</span>
             <input
               type="password"
               value={confirmPassword}
@@ -583,7 +583,7 @@ function RegistrationPage({ onRegister }) {
 
         {error && <p className="error">❌ {error}</p>}
         {success && <p className="success">✅ {success}</p>}
-        <button type="submit" className="login-btn">🎉 Register</button>
+        <button type="submit" className="login-btn">� Join Now</button>
       </form>
       {success && (
         <div className="registration-success">

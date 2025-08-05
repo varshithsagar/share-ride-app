@@ -240,8 +240,8 @@ body::before {
   border: 2px solid rgba(255, 107, 107, 0.2);
   border-radius: 10px;
   font-size: 1rem;
-  background: rgba(255, 255, 255, 0.9);
-  color: #000000;
+  background: #141313e6;
+  color: black;
   transition: all 0.3s ease;
   box-sizing: border-box;
   position: relative;
@@ -268,7 +268,7 @@ body::before {
   outline: none;
   border-color: #ff6b6b;
   box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.1);
-  background: rgba(255, 255, 255, 1);
+  background: #392929;
   transform: translateY(-2px);
 }
 
@@ -301,7 +301,7 @@ body::before {
   width: 100%;
   padding: 14px 20px;
   background: linear-gradient(135deg, #ff6b6b, #4ecdc4);
-  color: white;
+  color: rgb(114, 58, 58);
   border: none;
   border-radius: 10px;
   font-size: 1.1rem;
@@ -322,7 +322,7 @@ body::before {
 .toggle-text {
   text-align: center;
   margin-top: 20px;
-  color: rgba(255, 255, 255, 0.9);
+  color: #211e1ee6;
   font-size: 1rem;
   font-weight: 500;
 }
@@ -366,7 +366,7 @@ body::before {
   padding: 40px;
   border-radius: 20px;
   text-align: center;
-  color: white;
+  color: #2e2727;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
   animation: slideUp 0.5s ease-out;
 }
@@ -496,7 +496,7 @@ body::before {
 .toggle-text {
   text-align: center;
   margin-top: 20px;
-  color: white;
+  color: rgb(17, 16, 16);
   font-size: 14px;
   text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
 }
@@ -603,7 +603,7 @@ input[type="number"] {
   transition: border-color 0.3s ease;
   margin-bottom: 0;
   height: 45px;
-  color: #000000;
+  color: black;
 }
 
 input[type="text"]:focus,
@@ -5019,6 +5019,26 @@ textarea {
   background: rgba(255, 255, 255, 0.2) !important;
 }
 
+/* Specific overrides for login and registration forms */
+.form-container input[type="text"],
+.form-container input[type="password"],
+.form-container input[type="email"] {
+  color: white !important;
+  background: rgba(255, 255, 255, 0.15) !important;
+}
+
+.form-container .input-wrapper input {
+  color: white !important;
+  background: rgba(255, 255, 255, 0.15) !important;
+}
+
+/* Ultra-specific override for login inputs to ensure white text */
+.form-container .input-wrapper input[type="text"],
+.form-container .input-wrapper input[type="password"],
+.form-container .input-wrapper input[type="email"] {
+  color: white !important;
+}
+
 /* My Rides Modal Styles */
 .my-rides-modal {
   max-width: 900px;
@@ -5203,4 +5223,25 @@ textarea {
 .booking-meta small {
   color: rgba(255, 255, 255, 0.6);
   font-size: 0.8rem;
+}
+
+/* Ultimate override for login form input text color */
+.form-container input,
+.form-container input[type="text"],
+.form-container input[type="password"],
+.form-container input[type="email"],
+.form-container .input-wrapper input,
+.form-container .input-wrapper input[type="text"],
+.form-container .input-wrapper input[type="password"],
+.form-container .input-wrapper input[type="email"] {
+  color: black !important;
+}
+
+/* Override for focused state */
+.form-container input:focus,
+.form-container input[type="text"]:focus,
+.form-container input[type="password"]:focus,
+.form-container input[type="email"]:focus,
+.form-container .input-wrapper input:focus {
+  color: black !important;
 }
