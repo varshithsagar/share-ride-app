@@ -364,7 +364,9 @@ function App() {
       status: "Upcoming",
       driver: "John Doe",
       vehicle: "Honda City (White) KA-01-XX-XXXX",
-      notes: "AC vehicle, music allowed"
+      notes: "AC vehicle, music allowed",
+      driverRating: 4.8,
+      estimatedDuration: "25 mins"
     },
     {
       id: 2,
@@ -377,7 +379,129 @@ function App() {
       status: "Upcoming",
       driver: "Jane Smith",
       vehicle: "Toyota Innova (Silver) KA-02-YY-YYYY",
-      notes: "Pets allowed, no smoking"
+      notes: "Pets allowed, no smoking",
+      driverRating: 4.9,
+      estimatedDuration: "30 mins"
+    },
+    {
+      id: 3,
+      from: "Airport",
+      to: "City Center",
+      date: "2025-08-05",
+      time: "16:15",
+      price: 75,
+      seats: 4,
+      status: "Upcoming",
+      driver: "Michael Chen",
+      vehicle: "Kia Carnival (Black) KA-03-ZZ-ZZZZ",
+      notes: "Luggage space available, AC vehicle",
+      driverRating: 4.7,
+      estimatedDuration: "45 mins"
+    },
+    {
+      id: 4,
+      from: "Tech Park",
+      to: "Residential Area",
+      date: "2025-08-05",
+      time: "18:00",
+      price: 35,
+      seats: 3,
+      status: "Upcoming",
+      driver: "Sarah Wilson",
+      vehicle: "Hyundai Venue (Blue) KA-04-AA-AAAA",
+      notes: "Ladies only, AC vehicle",
+      driverRating: 4.9,
+      estimatedDuration: "20 mins"
+    },
+    {
+      id: 5,
+      from: "Shopping District",
+      to: "Suburbs",
+      date: "2025-08-05",
+      time: "17:30",
+      price: 45,
+      seats: 2,
+      status: "Upcoming",
+      driver: "Alex Thompson",
+      vehicle: "Maruti Swift (Red) KA-05-BB-BBBB",
+      notes: "AC vehicle, light music",
+      driverRating: 4.6,
+      estimatedDuration: "35 mins"
+    },
+    {
+      id: 6,
+      from: "Metro Station",
+      to: "IT Hub",
+      date: "2025-08-05",
+      time: "09:00",
+      price: 30,
+      seats: 4,
+      status: "Upcoming",
+      driver: "Priya Sharma",
+      vehicle: "Tata Nexon (Grey) KA-06-CC-CCCC",
+      notes: "AC vehicle, phone charging available",
+      driverRating: 4.8,
+      estimatedDuration: "25 mins"
+    },
+    {
+      id: 7,
+      from: "Business District",
+      to: "Airport",
+      date: "2025-08-05",
+      time: "13:45",
+      price: 65,
+      seats: 3,
+      status: "Upcoming",
+      driver: "David Miller",
+      vehicle: "Toyota Fortuner (Black) KA-07-DD-DDDD",
+      notes: "Premium ride, luggage space, AC vehicle",
+      driverRating: 4.9,
+      estimatedDuration: "40 mins"
+    },
+    {
+      id: 8,
+      from: "Residential Area",
+      to: "Shopping District",
+      date: "2025-08-05",
+      time: "11:30",
+      price: 35,
+      seats: 3,
+      status: "Upcoming",
+      driver: "Emma Davis",
+      vehicle: "Honda WR-V (Silver) KA-08-EE-EEEE",
+      notes: "AC vehicle, no smoking",
+      driverRating: 4.7,
+      estimatedDuration: "30 mins"
+    },
+    {
+      id: 9,
+      from: "University",
+      to: "Metro Station",
+      date: "2025-08-05",
+      time: "16:45",
+      price: 25,
+      seats: 4,
+      status: "Upcoming",
+      driver: "Raj Patel",
+      vehicle: "Maruti Ertiga (White) KA-09-FF-FFFF",
+      notes: "Student friendly, AC vehicle",
+      driverRating: 4.8,
+      estimatedDuration: "20 mins"
+    },
+    {
+      id: 10,
+      from: "IT Hub",
+      to: "City Center",
+      date: "2025-08-05",
+      time: "19:15",
+      price: 40,
+      seats: 3,
+      status: "Upcoming",
+      driver: "Lisa Anderson",
+      vehicle: "MG Astor (Blue) KA-10-GG-GGGG",
+      notes: "Premium ride, AC vehicle, water bottles provided",
+      driverRating: 4.9,
+      estimatedDuration: "30 mins"
     }
   ]);
 
@@ -422,7 +546,33 @@ function App() {
 
   const handleFindRide = (e) => {
     e.preventDefault();
-    // Implement ride search logic here
+    
+    // Filter rides based on search criteria
+    const filteredRides = availableRides.filter(ride => {
+      // Match origin (case-insensitive partial match)
+      const fromMatch = ride.from.toLowerCase().includes(searchRide.from.toLowerCase());
+      
+      // Match destination (case-insensitive partial match)
+      const toMatch = ride.to.toLowerCase().includes(searchRide.to.toLowerCase());
+      
+      // Match date
+      const dateMatch = !searchRide.date || ride.date === searchRide.date;
+      
+      // Check if enough seats are available
+      const seatsMatch = ride.seats >= parseInt(searchRide.passengers);
+
+      return fromMatch && toMatch && dateMatch && seatsMatch;
+    });
+
+    // Sort rides by departure time
+    filteredRides.sort((a, b) => {
+      const timeA = new Date(`${a.date} ${a.time}`);
+      const timeB = new Date(`${b.date} ${b.time}`);
+      return timeA - timeB;
+    });
+
+    // Update available rides to show only filtered results
+    setAvailableRides(filteredRides);
     setShowFindRide(false);
   };
 
@@ -508,7 +658,15 @@ function App() {
           {!showOfferRide && !showFindRide && (
             <div className="welcome-content">
               <div className="available-rides">
-                <h3>🚗 Available Rides Nearby</h3>
+                <div className="rides-header">
+                  <h3>🚗 Available Rides Nearby</h3>
+                  <button 
+                    className="reset-search-btn"
+                    onClick={() => window.location.reload()}
+                  >
+                    <span className="icon">🔄</span> Reset Search
+                  </button>
+                </div>
                 <div className="ride-cards">
                   {availableRides.map((ride, index) => (
                     <div className={`ride-item ${lastBookedId === ride.id ? 'new-booking' : ''}`} key={index}>
@@ -536,6 +694,13 @@ function App() {
                           </div>
                         </div>
                         <div className="ride-detail-item">
+                          <span className="detail-icon">⏱️</span>
+                          <div className="detail-content">
+                            <div className="detail-label">Est. Duration</div>
+                            <div className="detail-value">{ride.estimatedDuration}</div>
+                          </div>
+                        </div>
+                        <div className="ride-detail-item">
                           <span className="detail-icon">💰</span>
                           <div className="detail-content">
                             <div className="detail-label">Price per seat</div>
@@ -553,7 +718,12 @@ function App() {
                           <span className="detail-icon">👤</span>
                           <div className="detail-content">
                             <div className="detail-label">Driver</div>
-                            <div className="detail-value">{ride.driver}</div>
+                            <div className="detail-value">
+                              {ride.driver}
+                              <span className="driver-rating">
+                                ⭐ {ride.driverRating}
+                              </span>
+                            </div>
                           </div>
                         </div>
                         <div className="ride-detail-item">
@@ -561,6 +731,13 @@ function App() {
                           <div className="detail-content">
                             <div className="detail-label">Vehicle</div>
                             <div className="detail-value">{ride.vehicle}</div>
+                          </div>
+                        </div>
+                        <div className="ride-detail-item">
+                          <span className="detail-icon">📝</span>
+                          <div className="detail-content">
+                            <div className="detail-label">Notes</div>
+                            <div className="detail-value">{ride.notes}</div>
                           </div>
                         </div>
                       </div>
