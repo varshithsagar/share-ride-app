@@ -131,8 +131,11 @@ function MyRides({ user, onClose, rideHistory, onCancelRide, onContactPassenger,
                         )}
                       </div>
                       
-                      {ride.status === 'Booked' && (
+                      {(ride.status === 'Booked' || ride.status === 'Confirmed' || !ride.status) && (
                         <div className="ride-actions">
+                          <div className="ready-to-start-indicator">
+                            <span className="ready-text">🟢 Ready to Start Ride</span>
+                          </div>
                           <button 
                             className="action-btn contact-btn"
                             onClick={() => onContactPassenger(ride)}
