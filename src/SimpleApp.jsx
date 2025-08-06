@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
 
-function MyRides({ user, onClose, rideHistory, onCancelRide, onContactPassenger, onSendRideStartMessage }) {
+function MyRides({ user, onClose, rideHistory, onCancelRide, onContactPassenger, onSendRideStartMessage, onNavigateToPassenger, onTrackDriver }) {
   return (
     <div className="overlay">
       <div className="modal-container my-rides-modal">
@@ -166,7 +166,15 @@ function MyRides({ user, onClose, rideHistory, onCancelRide, onContactPassenger,
                           {/* NEW: Navigate to Passenger */}
                           <button 
                             className="action-btn navigate-btn"
-                            onClick={() => onNavigateToPassenger(ride)}
+                            onClick={(e) => {
+                              e.target.textContent = '🔄 Opening Navigation...';
+                              e.target.disabled = true;
+                              onNavigateToPassenger(ride);
+                              setTimeout(() => {
+                                e.target.textContent = '🗺️ Navigate to Pickup';
+                                e.target.disabled = false;
+                              }, 2000);
+                            }}
                             title="Open Google Maps navigation to passenger pickup location"
                           >
                             🗺️ Navigate to Pickup
@@ -185,7 +193,15 @@ function MyRides({ user, onClose, rideHistory, onCancelRide, onContactPassenger,
                             {/* NEW: Track driver location button for passengers */}
                             <button 
                               className="action-btn track-driver-btn"
-                              onClick={() => onTrackDriver(ride)}
+                              onClick={(e) => {
+                                e.target.textContent = '🔄 Opening Maps...';
+                                e.target.disabled = true;
+                                onTrackDriver(ride);
+                                setTimeout(() => {
+                                  e.target.textContent = '📍 Track Route';
+                                  e.target.disabled = false;
+                                }, 2000);
+                              }}
                               title="Open Google Maps to see route to destination"
                             >
                               📍 Track Route
@@ -1230,13 +1246,20 @@ function App() {
   // NEW: Navigation function for Google Maps
   const handleNavigateToPassenger = (ride) => {
     const pickupLocation = ride.pickupPoint || ride.from;
-    const destination = ride.to;
     
-    // Google Maps URL for navigation
-    const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(pickupLocation)}&travelmode=driving&dir_action=navigate`;
+    // Multiple Google Maps URL formats for better compatibility
+    const mapsUrl1 = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(pickupLocation)}&travelmode=driving&dir_action=navigate`;
+    const mapsUrl2 = `https://maps.google.com/maps?daddr=${encodeURIComponent(pickupLocation)}`;
+    const mapsUrl3 = `https://www.google.com/maps/search/${encodeURIComponent(pickupLocation)}`;
     
-    // Open Google Maps navigation
-    window.open(mapsUrl, '_blank', 'noopener,noreferrer');
+    // Try opening Google Maps navigation - multiple attempts
+    const mapWindow = window.open(mapsUrl1, '_blank', 'noopener,noreferrer');
+    
+    // Backup methods if first doesn't work
+    if (!mapWindow) {
+      setTimeout(() => window.open(mapsUrl2, '_blank'), 500);
+      setTimeout(() => window.open(mapsUrl3, '_blank'), 1000);
+    }
     
     // Also send location to passenger via WhatsApp
     const locationMessage = `📍 Hi! I'm heading to pick you up at ${pickupLocation}. You can track my location on Google Maps. I'll reach in approximately ${ride.estimatedDuration || '15-20 minutes'}. Booking ID: ${ride.bookingId}`;
@@ -1249,18 +1272,35 @@ function App() {
         window.open(whatsappUrl, '_blank');
       }, 1000);
     }
+    
+    // Show visual feedback with specific message
+    setNotificationMessage('🗺️ Navigation to passenger opened!');
+    setBookingSuccess(true);
+    setTimeout(() => {
+      setBookingSuccess(false);
+      setNotificationMessage('');
+    }, 3000);
   };
+
+  // Track success notification state
+  const [notificationMessage, setNotificationMessage] = useState('');
 
   // NEW: Track Driver function for passengers
   const handleTrackDriver = (ride) => {
     const pickupLocation = ride.pickupPoint || ride.from;
     const destination = ride.to;
     
-    // Google Maps URL to show route from pickup to destination
-    const routeUrl = `https://www.google.com/maps/dir/${encodeURIComponent(pickupLocation)}/${encodeURIComponent(destination)}`;
+    // Create multiple Google Maps URL options for better compatibility
+    const routeUrl1 = `https://www.google.com/maps/dir/${encodeURIComponent(pickupLocation)}/${encodeURIComponent(destination)}`;
+    const routeUrl2 = `https://maps.google.com/maps?saddr=${encodeURIComponent(pickupLocation)}&daddr=${encodeURIComponent(destination)}`;
     
-    // Open Google Maps route
-    window.open(routeUrl, '_blank', 'noopener,noreferrer');
+    // Try opening Google Maps route - multiple attempts for compatibility
+    const mapWindow1 = window.open(routeUrl1, '_blank', 'noopener,noreferrer');
+    
+    // Backup method if first doesn't work
+    if (!mapWindow1) {
+      window.open(routeUrl2, '_blank', 'noopener,noreferrer');
+    }
     
     // Send current status message to driver
     const trackingMessage = `📱 Hi! I'm tracking our route from ${pickupLocation} to ${destination}. Please let me know when you're nearby for pickup. Booking ID: ${ride.bookingId}`;
@@ -1273,6 +1313,14 @@ function App() {
         window.open(whatsappUrl, '_blank');
       }, 1500);
     }
+    
+    // Show visual feedback with specific message
+    setNotificationMessage('📍 Route tracking opened in Google Maps!');
+    setBookingSuccess(true);
+    setTimeout(() => {
+      setBookingSuccess(false);
+      setNotificationMessage('');
+    }, 3000);
   };
 
   const handleSendRideStartMessage = (ride) => {
@@ -1351,8 +1399,8 @@ function App() {
               <div className="notification-content">
                 <span className="notification-icon">🗺️</span>
                 <div className="notification-text">
-                  <h3>Navigation & WhatsApp Opened!</h3>
-                  <p>Google Maps navigation and WhatsApp message ready to go.</p>
+                  <h3>Maps & WhatsApp Opened!</h3>
+                  <p>{notificationMessage || 'Google Maps navigation and WhatsApp message ready to go.'}</p>
                 </div>
               </div>
             </div>
