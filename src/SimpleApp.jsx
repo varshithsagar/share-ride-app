@@ -210,6 +210,34 @@ function MyRides({ user, onClose, rideHistory, onCancelRide, onContactPassenger,
                         </div>
                       )}
                       
+                      {ride.status === 'Completed' && (
+                        <div className="payment-history">
+                          <h4 className="payment-title">💳 Payment Details</h4>
+                          <div className="payment-info">
+                            <div className="payment-row">
+                              <span className="payment-label">Total Amount:</span>
+                              <span className="payment-value">₹{ride.totalPrice}</span>
+                            </div>
+                            <div className="payment-row">
+                              <span className="payment-label">Payment Method:</span>
+                              <span className="payment-value">{ride.paymentMethod}</span>
+                            </div>
+                            <div className="payment-row">
+                              <span className="payment-label">Payment Date:</span>
+                              <span className="payment-value">{ride.bookingDate}</span>
+                            </div>
+                            <div className="payment-row">
+                              <span className="payment-label">Transaction ID:</span>
+                              <span className="payment-value">{ride.bookingId}</span>
+                            </div>
+                            <div className="payment-row">
+                              <span className="payment-label">Status:</span>
+                              <span className="payment-value payment-completed">✅ Payment Completed</span>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                      
                       {ride.status === 'Completed' && !ride.reviewed && (
                         <div className="ride-actions">
                           <button className="action-btn review-btn">⭐ Rate & Review</button>
@@ -970,7 +998,60 @@ function App() {
   const [showQuickRide, setShowQuickRide] = useState(false);
   const [showMyRides, setShowMyRides] = useState(false);
   const [bookingSuccess, setBookingSuccess] = useState(false);
-  const [myRideHistory, setMyRideHistory] = useState([]);
+  const [cancellationSuccess, setCancellationSuccess] = useState(false);
+  const [myRideHistory, setMyRideHistory] = useState([
+    {
+      id: 101,
+      from: "City Center",
+      to: "University",
+      date: "2025-08-05",
+      time: "09:30",
+      totalPrice: 50,
+      passengers: 1,
+      driver: "John Doe",
+      vehicle: "Honda City (White)",
+      bookingDate: "2025-08-05",
+      bookingId: "SR890123",
+      status: "Completed",
+      paymentMethod: "UPI Payment",
+      driverPhone: "+91-9876-5432-10",
+      reviewed: false
+    },
+    {
+      id: 102,
+      from: "Mall",
+      to: "Tech Park",
+      date: "2025-08-04",
+      time: "18:15",
+      totalPrice: 75,
+      passengers: 2,
+      driver: "Jane Smith",
+      vehicle: "Toyota Innova (Silver)",
+      bookingDate: "2025-08-04",
+      bookingId: "SR789456",
+      status: "Completed",
+      paymentMethod: "Cash on Ride",
+      driverPhone: "+91-8765-4321-09",
+      reviewed: true
+    },
+    {
+      id: 103,
+      from: "Airport",
+      to: "City Center",
+      date: "2025-08-03",
+      time: "12:45",
+      totalPrice: 120,
+      passengers: 1,
+      driver: "Michael Chen",
+      vehicle: "Kia Carnival (Black)",
+      bookingDate: "2025-08-03",
+      bookingId: "SR678234",
+      status: "Completed",
+      paymentMethod: "Credit Card",
+      driverPhone: "+91-7654-3210-98",
+      reviewed: false
+    }
+  ]);
   const [availableRides, setAvailableRides] = useState([
     {
       id: 1,
@@ -1218,8 +1299,8 @@ function App() {
     }
     
     // Show success notification
-    setBookingSuccess(true);
-    setTimeout(() => setBookingSuccess(false), 4000);
+    setCancellationSuccess(true);
+    setTimeout(() => setCancellationSuccess(false), 4000);
   };
 
   const handleNotifyDriverOfCancellation = (ride) => {
@@ -1389,6 +1470,12 @@ function App() {
         {bookingSuccess && (
           <div className="booking-success">
             🎉 Ride booked successfully! Have a great journey!
+          </div>
+        )}
+        
+        {cancellationSuccess && (
+          <div className="cancellation-success">
+            ✅ Ride cancelled successfully! Your booking has been cancelled.
           </div>
         )}
         

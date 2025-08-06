@@ -1579,6 +1579,28 @@ button:hover {
   }
 }
 
+.cancellation-success {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  padding: 15px 25px;
+  background: linear-gradient(135deg, #f39c12, #e67e22);
+  color: white;
+  border-radius: 10px;
+  box-shadow: 0 4px 15px rgba(243, 156, 18, 0.3);
+  animation: slideInRight 0.3s ease-out;
+  z-index: 1100;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.cancellation-success::before {
+  content: '✓';
+  font-size: 1.2em;
+  font-weight: bold;
+}
+
 .new-booking {
   animation: highlightNew 1s ease-out;
 }
@@ -5914,5 +5936,87 @@ textarea {
     position: static;
     margin-top: 10px;
     align-self: center;
+  }
+}
+
+/* Payment History Styles */
+.payment-history {
+  background: linear-gradient(135deg, 
+    rgba(34, 193, 195, 0.1) 0%,
+    rgba(253, 187, 45, 0.1) 100%
+  );
+  border: 1px solid rgba(34, 193, 195, 0.3);
+  border-radius: 15px;
+  padding: 20px;
+  margin: 15px 0;
+  backdrop-filter: blur(10px);
+}
+
+.payment-title {
+  color: #22c1c3;
+  margin: 0 0 15px 0;
+  font-size: 1.2rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.payment-info {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.payment-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.payment-row:last-child {
+  border-bottom: none;
+}
+
+.payment-label {
+  color: rgba(255, 255, 255, 0.8);
+  font-weight: 500;
+  font-size: 0.95rem;
+}
+
+.payment-value {
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.payment-completed {
+  color: #4ade80;
+  font-weight: 700;
+}
+
+/* Responsive Payment History */
+@media (max-width: 768px) {
+  .payment-history {
+    padding: 15px;
+    margin: 10px 0;
+  }
+  
+  .payment-title {
+    font-size: 1.1rem;
+  }
+  
+  .payment-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
+    padding: 10px 0;
+  }
+  
+  .payment-label,
+  .payment-value {
+    font-size: 0.9rem;
   }
 }
