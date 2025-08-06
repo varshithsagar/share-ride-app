@@ -1328,19 +1328,36 @@ function App() {
   const handleNavigateToPassenger = (ride) => {
     const pickupLocation = ride.pickupPoint || ride.from;
     
-    // Multiple Google Maps URL formats for better compatibility
-    const mapsUrl1 = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(pickupLocation)}&travelmode=driving&dir_action=navigate`;
-    const mapsUrl2 = `https://maps.google.com/maps?daddr=${encodeURIComponent(pickupLocation)}`;
-    const mapsUrl3 = `https://www.google.com/maps/search/${encodeURIComponent(pickupLocation)}`;
-    
-    // Try opening Google Maps navigation - multiple attempts
-    const mapWindow = window.open(mapsUrl1, '_blank', 'noopener,noreferrer');
-    
-    // Backup methods if first doesn't work
-    if (!mapWindow) {
-      setTimeout(() => window.open(mapsUrl2, '_blank'), 500);
-      setTimeout(() => window.open(mapsUrl3, '_blank'), 1000);
-    }
+    // Get current location and create navigation URLs that auto-start navigation
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        
+        // URLs that automatically start navigation from current location to pickup point
+        const autoNavUrl1 = `https://www.google.com/maps/dir/${latitude},${longitude}/${encodeURIComponent(pickupLocation)}/@${latitude},${longitude},15z/data=!4m2!4m1!3e0?entry=ttu`;
+        const autoNavUrl2 = `https://maps.google.com/maps?saddr=${latitude},${longitude}&daddr=${encodeURIComponent(pickupLocation)}&dirflg=d`;
+        const autoNavUrl3 = `https://www.google.com/maps/dir/?api=1&origin=${latitude},${longitude}&destination=${encodeURIComponent(pickupLocation)}&travelmode=driving&dir_action=navigate`;
+        
+        // Try opening Google Maps navigation with auto-start
+        const mapWindow = window.open(autoNavUrl1, '_blank', 'noopener,noreferrer');
+        
+        // Backup methods if first doesn't work
+        if (!mapWindow) {
+          setTimeout(() => window.open(autoNavUrl2, '_blank'), 500);
+          setTimeout(() => window.open(autoNavUrl3, '_blank'), 1000);
+        }
+      },
+      (error) => {
+        // Fallback if location access denied - use destination-only URLs
+        const mapsUrl1 = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(pickupLocation)}&travelmode=driving&dir_action=navigate`;
+        const mapsUrl2 = `https://maps.google.com/maps?daddr=${encodeURIComponent(pickupLocation)}`;
+        
+        const mapWindow = window.open(mapsUrl1, '_blank', 'noopener,noreferrer');
+        if (!mapWindow) {
+          setTimeout(() => window.open(mapsUrl2, '_blank'), 500);
+        }
+      }
+    );
     
     // Also send location to passenger via WhatsApp
     const locationMessage = `📍 Hi! I'm heading to pick you up at ${pickupLocation}. You can track my location on Google Maps. I'll reach in approximately ${ride.estimatedDuration || '15-20 minutes'}. Booking ID: ${ride.bookingId}`;
@@ -1355,12 +1372,12 @@ function App() {
     }
     
     // Show visual feedback with specific message
-    setNotificationMessage('🗺️ Navigation to passenger opened!');
+    setNotificationMessage('🗺️ Auto-navigation to passenger started!');
     setBookingSuccess(true);
     setTimeout(() => {
       setBookingSuccess(false);
       setNotificationMessage('');
-    }, 3000);
+    }, 4000);
   };
 
   // Track success notification state
