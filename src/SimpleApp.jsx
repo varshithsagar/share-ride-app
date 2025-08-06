@@ -163,6 +163,14 @@ function MyRides({ user, onClose, rideHistory, onCancelRide, onContactPassenger,
                           >
                             📞 Contact via WhatsApp
                           </button>
+                          {/* NEW: Navigate to Passenger */}
+                          <button 
+                            className="action-btn navigate-btn"
+                            onClick={() => onNavigateToPassenger(ride)}
+                            title="Open Google Maps navigation to passenger pickup location"
+                          >
+                            🗺️ Navigate to Pickup
+                          </button>
                           {/* Passenger can cancel before pickup */}
                           <button 
                             className="action-btn cancel-before-pickup-btn"
@@ -174,6 +182,14 @@ function MyRides({ user, onClose, rideHistory, onCancelRide, onContactPassenger,
                           <div className="ride-status-info">
                             <span className="status-text">🚀 Ride Started at: {ride.startedAt}</span>
                             <p className="cancel-notice">💡 Click to cancel instantly - Driver gets WhatsApp notification</p>
+                            {/* NEW: Track driver location button for passengers */}
+                            <button 
+                              className="action-btn track-driver-btn"
+                              onClick={() => onTrackDriver(ride)}
+                              title="Open Google Maps to see route to destination"
+                            >
+                              📍 Track Route
+                            </button>
                           </div>
                         </div>
                       )}
@@ -1211,6 +1227,54 @@ function App() {
     }
   };
 
+  // NEW: Navigation function for Google Maps
+  const handleNavigateToPassenger = (ride) => {
+    const pickupLocation = ride.pickupPoint || ride.from;
+    const destination = ride.to;
+    
+    // Google Maps URL for navigation
+    const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(pickupLocation)}&travelmode=driving&dir_action=navigate`;
+    
+    // Open Google Maps navigation
+    window.open(mapsUrl, '_blank', 'noopener,noreferrer');
+    
+    // Also send location to passenger via WhatsApp
+    const locationMessage = `📍 Hi! I'm heading to pick you up at ${pickupLocation}. You can track my location on Google Maps. I'll reach in approximately ${ride.estimatedDuration || '15-20 minutes'}. Booking ID: ${ride.bookingId}`;
+    const phoneNumber = ride.driverPhone?.replace(/[^0-9]/g, '') || '';
+    
+    if (phoneNumber) {
+      const whatsappUrl = `https://wa.me/91${phoneNumber}?text=${encodeURIComponent(locationMessage)}`;
+      // Open WhatsApp in a new tab after a short delay
+      setTimeout(() => {
+        window.open(whatsappUrl, '_blank');
+      }, 1000);
+    }
+  };
+
+  // NEW: Track Driver function for passengers
+  const handleTrackDriver = (ride) => {
+    const pickupLocation = ride.pickupPoint || ride.from;
+    const destination = ride.to;
+    
+    // Google Maps URL to show route from pickup to destination
+    const routeUrl = `https://www.google.com/maps/dir/${encodeURIComponent(pickupLocation)}/${encodeURIComponent(destination)}`;
+    
+    // Open Google Maps route
+    window.open(routeUrl, '_blank', 'noopener,noreferrer');
+    
+    // Send current status message to driver
+    const trackingMessage = `📱 Hi! I'm tracking our route from ${pickupLocation} to ${destination}. Please let me know when you're nearby for pickup. Booking ID: ${ride.bookingId}`;
+    const phoneNumber = ride.driverPhone?.replace(/[^0-9]/g, '') || '';
+    
+    if (phoneNumber) {
+      const whatsappUrl = `https://wa.me/91${phoneNumber}?text=${encodeURIComponent(trackingMessage)}`;
+      // Open WhatsApp in a new tab after a short delay
+      setTimeout(() => {
+        window.open(whatsappUrl, '_blank');
+      }, 1500);
+    }
+  };
+
   const handleSendRideStartMessage = (ride) => {
     const message = `🚗 RIDE STARTED! Hi, your ride from ${ride.from} to ${ride.to} has started. Driver: ${user.fullName || user.username}. Vehicle: ${ride.vehicle}. Booking ID: ${ride.bookingId}. Estimated arrival: ${ride.estimatedDuration}. Safe journey!`;
     const phoneNumber = ride.driverPhone?.replace(/[^0-9]/g, '') || '';
@@ -1219,7 +1283,7 @@ function App() {
       // Show loading state
       const originalButton = event?.target;
       if (originalButton) {
-        originalButton.textContent = '🔄 Opening WhatsApp...';
+        originalButton.textContent = '🔄 Starting Navigation...';
         originalButton.disabled = true;
       }
       
@@ -1227,7 +1291,16 @@ function App() {
       const whatsappUrl = `https://wa.me/91${phoneNumber}?text=${encodeURIComponent(message)}`;
       
       // Open WhatsApp immediately
-      const whatsappWindow = window.open(whatsappUrl, '_blank', 'noopener,noreferrer,width=800,height=600');
+      window.open(whatsappUrl, '_blank', 'noopener,noreferrer,width=800,height=600');
+      
+      // NEW: Auto-open Google Maps navigation
+      const pickupLocation = ride.pickupPoint || ride.from;
+      const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(pickupLocation)}&travelmode=driving&dir_action=navigate`;
+      
+      // Open Maps navigation after WhatsApp
+      setTimeout(() => {
+        window.open(mapsUrl, '_blank', 'noopener,noreferrer');
+      }, 1500);
       
       // Mark ride as started immediately
       setMyRideHistory(prevHistory => 
@@ -1241,7 +1314,7 @@ function App() {
       // Reset button after a delay
       setTimeout(() => {
         if (originalButton) {
-          originalButton.textContent = '✅ WhatsApp Opened!';
+          originalButton.textContent = '✅ Navigation Started!';
           setTimeout(() => {
             originalButton.textContent = '🚀 Start Ride & Notify';
             originalButton.disabled = false;
@@ -1276,10 +1349,10 @@ function App() {
           {bookingSuccess && (
             <div className="success-notification whatsapp-notification">
               <div className="notification-content">
-                <span className="notification-icon">✅</span>
+                <span className="notification-icon">🗺️</span>
                 <div className="notification-text">
-                  <h3>Action Completed Successfully!</h3>
-                  <p>WhatsApp message sent automatically. Check your WhatsApp.</p>
+                  <h3>Navigation & WhatsApp Opened!</h3>
+                  <p>Google Maps navigation and WhatsApp message ready to go.</p>
                 </div>
               </div>
             </div>
@@ -1370,6 +1443,8 @@ function App() {
             onCancelRide={handleCancelRide}
             onContactPassenger={handleContactPassenger}
             onSendRideStartMessage={handleSendRideStartMessage}
+            onNavigateToPassenger={handleNavigateToPassenger}
+            onTrackDriver={handleTrackDriver}
           />
         )}
         

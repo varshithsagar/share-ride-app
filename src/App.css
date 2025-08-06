@@ -5448,6 +5448,111 @@ textarea {
   font-style: italic;
 }
 
+.navigate-btn {
+  background: linear-gradient(135deg, #3498db, #2980b9) !important;
+  color: white !important;
+  border: 2px solid #3498db;
+  box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+  font-weight: bold;
+  position: relative;
+  animation: pulseBlue 3s infinite;
+}
+
+.navigate-btn:hover {
+  background: linear-gradient(135deg, #2980b9, #1f5f99) !important;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(52, 152, 219, 0.4);
+}
+
+.navigate-btn:before {
+  content: "🗺️ Opens Google Maps navigation";
+  position: absolute;
+  top: -35px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.9);
+  color: white;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 11px;
+  opacity: 0;
+  transition: opacity 0.3s;
+  white-space: nowrap;
+  z-index: 1000;
+  pointer-events: none;
+}
+
+.navigate-btn:hover:before {
+  opacity: 1;
+}
+
+.track-driver-btn {
+  background: linear-gradient(135deg, #e67e22, #d35400) !important;
+  color: white !important;
+  border: 2px solid #e67e22;
+  box-shadow: 0 4px 15px rgba(230, 126, 34, 0.3);
+  font-weight: bold;
+  position: relative;
+  animation: pulseOrange 3s infinite;
+  margin: 10px 0;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.track-driver-btn:hover {
+  background: linear-gradient(135deg, #d35400, #a04000) !important;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(230, 126, 34, 0.4);
+}
+
+.track-driver-btn:before {
+  content: "📍 View route and track progress";
+  position: absolute;
+  bottom: -35px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.9);
+  color: white;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 11px;
+  opacity: 0;
+  transition: opacity 0.3s;
+  white-space: nowrap;
+  z-index: 1000;
+  pointer-events: none;
+}
+
+.track-driver-btn:hover:before {
+  opacity: 1;
+}
+
+@keyframes pulseOrange {
+  0% {
+    box-shadow: 0 4px 15px rgba(230, 126, 34, 0.3);
+  }
+  50% {
+    box-shadow: 0 4px 25px rgba(230, 126, 34, 0.6);
+  }
+  100% {
+    box-shadow: 0 4px 15px rgba(230, 126, 34, 0.3);
+  }
+}
+
+@keyframes pulseBlue {
+  0% {
+    box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+  }
+  50% {
+    box-shadow: 0 4px 25px rgba(52, 152, 219, 0.6);
+  }
+  100% {
+    box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+  }
+}
+
 .cancellation-reason {
   color: #e74c3c;
   font-weight: bold;
