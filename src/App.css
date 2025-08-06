@@ -1,6 +1,6 @@
 /* General body styling */
 body, html, #root {
-  height: 100vh;
+  min-height: 100vh;
   width: 100vw;
   margin: 0;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -8,8 +8,9 @@ body, html, #root {
   background-size: 400% 400%;
   display: flex;
   justify-content: center;
-  align-items: center;
+  align-items: flex-start;
   overflow-x: hidden;
+  overflow-y: auto;
   animation: gradientBG 20s ease infinite;
   position: relative;
 }
@@ -1104,7 +1105,7 @@ button:hover {
 .offer-ride-form h3,
 .find-ride-form h3 {
   text-align: center;
-  color: #2c3e50;
+  color: #000000; /* Black text for headings */
   font-size: 1.8em;
   margin-bottom: 25px;
   position: relative;
@@ -2947,12 +2948,14 @@ input[type="number"]:focus {
 .profile-form textarea:hover {
   border-color: #bdc3c7;
   background: #fafbfc;
+  color: #000000; /* Ensure black text on hover */
 }
 
 .profile-form input:focus,
 .profile-form textarea:focus {
   border-color: #3498db;
   background: #fff;
+  color: #000000; /* Ensure black text on focus */
   box-shadow: 0 0 0 4px rgba(52, 152, 219, 0.15),
               inset 0 2px 4px rgba(0, 0, 0, 0.05);
   outline: none;
@@ -2978,6 +2981,68 @@ input[type="number"]:focus {
   color: #000000;
   cursor: not-allowed;
   opacity: 0.8;
+}
+
+/* Specific styling for pickup location and destination inputs in profile */
+.profile-form .location-input {
+  color: #000000 !important; /* Pure black text */
+  font-weight: 500;
+  background: #ffffff;
+  border: 2px solid #e1e8ed;
+  padding: 15px 18px;
+  border-radius: 12px;
+  font-size: 16px;
+  transition: all 0.3s ease;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.profile-form .location-input:focus {
+  color: #000000 !important; /* Ensure black text on focus */
+  border-color: #3498db;
+  background: #ffffff;
+  box-shadow: 0 0 0 4px rgba(52, 152, 219, 0.15),
+              inset 0 2px 4px rgba(0, 0, 0, 0.05);
+  outline: none;
+  transform: translateY(-1px);
+}
+
+.profile-form .location-input:hover {
+  color: #000000 !important; /* Black text on hover */
+  border-color: #bdc3c7;
+  background: #fafbfc;
+}
+
+.profile-form .location-input::placeholder {
+  color: #7f8c8d;
+  font-style: italic;
+}
+
+/* Ultimate override to ensure ALL settings form inputs have black text */
+.profile-form input,
+.profile-form textarea,
+.profile-form select,
+.settings-form input,
+.settings-form textarea,
+.settings-form select {
+  color: #000000 !important; /* Force black text in all states */
+}
+
+.profile-form input:hover,
+.profile-form textarea:hover,
+.profile-form select:hover,
+.settings-form input:hover,
+.settings-form textarea:hover,
+.settings-form select:hover {
+  color: #000000 !important; /* Force black text on hover */
+}
+
+.profile-form input:focus,
+.profile-form textarea:focus,  
+.profile-form select:focus,
+.settings-form input:focus,
+.settings-form textarea:focus,
+.settings-form select:focus {
+  color: #000000 !important; /* Force black text on focus */
 }
 
 .profile-actions {
@@ -3837,9 +3902,9 @@ input[type="number"]:focus {
 .main-dashboard {
   width: 100%;
   max-width: 1400px;
-  margin: 0 auto;
+  margin: 20px auto;
   padding: 25px;
-  min-height: 100vh;
+  min-height: calc(100vh - 40px);
   position: relative;
   z-index: 1;
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
@@ -4610,7 +4675,7 @@ input[type="number"]:focus {
 .find-ride-form label {
   display: block;
   margin-bottom: 8px;
-  color: #2c3e50;
+  color: #000000; /* Black text for labels */
   font-weight: 600;
   font-size: 0.95em;
 }
@@ -5215,6 +5280,296 @@ textarea {
   font-size: 0.9rem;
 }
 
+/* Enhanced My Rides Section */
+.ride-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 15px;
+  flex-wrap: wrap;
+}
+
+.action-btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  flex: 1;
+  min-width: 120px;
+}
+
+.contact-btn {
+  background: linear-gradient(135deg, #27ae60, #2ecc71);
+  color: white;
+}
+
+.contact-btn:hover {
+  background: linear-gradient(135deg, #229954, #27ae60);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(39, 174, 96, 0.3);
+}
+
+.start-ride-btn {
+  background: linear-gradient(135deg, #4CAF50, #45a049) !important;
+  color: white !important;
+  border: 2px solid #4CAF50;
+  box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+  font-weight: bold;
+  position: relative;
+  overflow: hidden;
+  animation: pulseGreen 2s infinite;
+}
+
+.start-ride-btn:hover {
+  background: linear-gradient(135deg, #45a049, #3d8b40) !important;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+}
+
+.start-ride-btn:before {
+  content: "� Auto-opens WhatsApp instantly";
+  position: absolute;
+  top: -35px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.9);
+  color: white;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 11px;
+  opacity: 0;
+  transition: opacity 0.3s;
+  white-space: nowrap;
+  z-index: 1000;
+  pointer-events: none;
+}
+
+.start-ride-btn:hover:before {
+  opacity: 1;
+}
+
+.whatsapp-notification {
+  background: linear-gradient(135deg, #25D366, #20ba5a) !important;
+  border: 2px solid #25D366;
+  color: white;
+  animation: slideInFromTop 0.5s ease-out, fadeOut 4s ease-in-out;
+}
+
+.whatsapp-notification .notification-content {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.whatsapp-notification .notification-icon {
+  font-size: 2rem;
+  animation: bounce 1s infinite;
+}
+
+.whatsapp-notification .notification-text h3 {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+
+.whatsapp-notification .notification-text p {
+  margin: 5px 0 0 0;
+  font-size: 0.9rem;
+  opacity: 0.9;
+}
+
+@keyframes bounce {
+  0%, 20%, 50%, 80%, 100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-10px);
+  }
+  60% {
+    transform: translateY(-5px);
+  }
+}
+
+@keyframes slideInFromTop {
+  from {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.cancel-before-pickup-btn {
+  background: linear-gradient(135deg, #ff7675, #d63031) !important;
+  color: white !important;
+  border: 2px solid #ff7675;
+  box-shadow: 0 4px 15px rgba(255, 118, 117, 0.3);
+  font-weight: bold;
+  position: relative;
+  animation: pulseRed 3s infinite;
+}
+
+.cancel-before-pickup-btn:hover {
+  background: linear-gradient(135deg, #d63031, #b71c1c) !important;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 118, 117, 0.4);
+}
+
+.cancel-before-pickup-btn:before {
+  content: "🚫 Instant cancellation + auto WhatsApp";
+  position: absolute;
+  top: -35px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.9);
+  color: white;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 11px;
+  opacity: 0;
+  transition: opacity 0.3s;
+  white-space: nowrap;
+  z-index: 1000;
+  pointer-events: none;
+}
+
+.cancel-before-pickup-btn:hover:before {
+  opacity: 1;
+}
+
+.cancel-notice {
+  color: #27ae60;
+  font-size: 0.85rem;
+  margin: 5px 0 0 0;
+  font-style: italic;
+}
+
+.cancellation-reason {
+  color: #e74c3c;
+  font-weight: bold;
+  font-style: italic;
+}
+
+@keyframes pulseRed {
+  0% {
+    box-shadow: 0 4px 15px rgba(255, 118, 117, 0.3);
+  }
+  50% {
+    box-shadow: 0 4px 25px rgba(255, 118, 117, 0.6);
+  }
+  100% {
+    box-shadow: 0 4px 15px rgba(255, 118, 117, 0.3);
+  }
+}
+
+@keyframes pulseGreen {
+  0% {
+    box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+  }
+  50% {
+    box-shadow: 0 4px 25px rgba(76, 175, 80, 0.6);
+  }
+  100% {
+    box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+  }
+}
+
+.ride-status-info {
+  margin-top: 10px;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.status-text {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.cancel-btn {
+  background: linear-gradient(135deg, #e74c3c, #c0392b);
+  color: white;
+}
+
+.cancel-btn:hover {
+  background: linear-gradient(135deg, #cb4335, #a93226);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(231, 76, 60, 0.3);
+}
+
+.review-btn {
+  background: linear-gradient(135deg, #f39c12, #e67e22);
+  color: white;
+}
+
+.review-btn:hover {
+  background: linear-gradient(135deg, #e67e22, #d35400);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(243, 156, 18, 0.3);
+}
+
+.booking-meta {
+  margin-top: 15px;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.booking-meta small {
+  display: block;
+  margin: 2px 0;
+}
+
+.history-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 15px;
+  margin-bottom: 25px;
+}
+
+.stat-card {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+  padding: 20px;
+  border-radius: 15px;
+  text-align: center;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+}
+
+.stat-number {
+  display: block;
+  font-size: 1.8rem;
+  font-weight: bold;
+  color: white;
+  margin-bottom: 5px;
+}
+
+.stat-label {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.8);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Cancelled Ride Status Styling */
+.status-cancelled {
+  background: linear-gradient(135deg, #e74c3c, #c0392b);
+  color: white;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
 .booking-meta {
   text-align: right;
   margin-top: 10px;
@@ -5244,4 +5599,215 @@ textarea {
 .form-container input[type="email"]:focus,
 .form-container .input-wrapper input:focus {
   color: black !important;
+}
+
+/* Quick Ride Styles */
+.quick-ride-card {
+  position: relative;
+  background: linear-gradient(135deg, #4ecdc4 0%, #44b8b0 100%);
+  border: 2px solid rgba(78, 205, 196, 0.3);
+  box-shadow: 0 8px 25px rgba(78, 205, 196, 0.4);
+}
+
+.quick-ride-card:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 15px 40px rgba(78, 205, 196, 0.6);
+}
+
+.urgent-icon {
+  font-size: 3rem;
+}
+
+.urgent-badge-small {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: linear-gradient(135deg, #4ecdc4, #44b8b0);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 0.7rem;
+  font-weight: bold;
+  letter-spacing: 0.5px;
+}
+
+.quick-ride-desc {
+  text-align: center;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 1.1rem;
+  margin-bottom: 25px;
+  padding: 15px;
+  background: linear-gradient(135deg, rgba(78, 205, 196, 0.2), rgba(68, 184, 176, 0.2));
+  border-radius: 15px;
+  border: 1px solid rgba(78, 205, 196, 0.3);
+}
+
+.quick-search-form {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 20px;
+  border-radius: 15px;
+  margin-bottom: 25px;
+  backdrop-filter: blur(10px);
+}
+
+.quick-search-btn {
+  background: linear-gradient(135deg, #4ecdc4, #44b8b0);
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 25px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 1rem;
+  box-shadow: 0 4px 15px rgba(78, 205, 196, 0.3);
+}
+
+.quick-search-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(78, 205, 196, 0.5);
+}
+
+.quick-ride-modal {
+  max-width: 900px !important;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.quick-rides-section h3 {
+  color: white;
+  margin-bottom: 20px;
+  font-size: 1.3rem;
+}
+
+.quick-rides-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.quick-ride-card {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.08));
+  backdrop-filter: blur(15px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 20px;
+  padding: 20px;
+  transition: all 0.3s ease;
+}
+
+.quick-ride-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.quick-ride-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.ride-time-urgent {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 5px;
+}
+
+.ride-time-urgent .time {
+  color: white;
+  font-weight: bold;
+  font-size: 1.1rem;
+}
+
+.urgent-badge {
+  background: linear-gradient(135deg, #4ecdc4, #44b8b0);
+  color: white;
+  padding: 4px 10px;
+  border-radius: 15px;
+  font-size: 0.7rem;
+  font-weight: bold;
+  letter-spacing: 0.5px;
+}
+
+.quick-ride-details {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.ride-info-quick {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+}
+
+.ride-info-quick span {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.9rem;
+}
+
+.quick-book-btn {
+  background: linear-gradient(135deg, #27ae60, #2ecc71);
+  color: white;
+  border: none;
+  padding: 15px 25px;
+  border-radius: 25px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 1rem;
+  box-shadow: 0 4px 15px rgba(46, 204, 113, 0.3);
+  white-space: nowrap;
+}
+
+.quick-book-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(46, 204, 113, 0.5);
+}
+
+.quick-book-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.no-quick-rides {
+  text-align: center;
+  padding: 40px 20px;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.no-quick-rides p {
+  margin: 10px 0;
+  font-size: 1.1rem;
+}
+
+/* Responsive Quick Ride Styles */
+@media (max-width: 768px) {
+  .quick-ride-modal {
+    max-width: 95vw;
+    margin: 20px auto;
+  }
+  
+  .quick-ride-header {
+    flex-direction: column;
+    gap: 10px;
+    text-align: center;
+  }
+  
+  .quick-ride-details {
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .quick-book-btn {
+    width: 100%;
+  }
+  
+  .urgent-badge-small {
+    position: static;
+    margin-top: 10px;
+    align-self: center;
+  }
 }

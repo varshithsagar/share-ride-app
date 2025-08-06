@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
 
-function MyRides({ user, onClose, rideHistory }) {
+function MyRides({ user, onClose, rideHistory, onCancelRide, onContactPassenger, onSendRideStartMessage }) {
   return (
     <div className="overlay">
       <div className="modal-container my-rides-modal">
@@ -30,6 +30,14 @@ function MyRides({ user, onClose, rideHistory }) {
                 <div className="stat-card">
                   <span className="stat-number">{rideHistory.filter(ride => ride.status === 'Booked').length}</span>
                   <span className="stat-label">Active Bookings</span>
+                </div>
+                <div className="stat-card">
+                  <span className="stat-number">{rideHistory.filter(ride => ride.status === 'Completed').length}</span>
+                  <span className="stat-label">Completed</span>
+                </div>
+                <div className="stat-card">
+                  <span className="stat-number">{rideHistory.filter(ride => ride.status === 'Cancelled').length}</span>
+                  <span className="stat-label">Cancelled</span>
                 </div>
               </div>
               
@@ -73,17 +81,108 @@ function MyRides({ user, onClose, rideHistory }) {
                           <span className="info-label">⭐ Rating:</span>
                           <span className="info-value">{ride.driverRating}/5</span>
                         </div>
+                        <div className="info-item">
+                          <span className="info-label">🚙 Vehicle:</span>
+                          <span className="info-value">{ride.vehicle || 'Not specified'}</span>
+                        </div>
+                        <div className="info-item">
+                          <span className="info-label">⏱️ Duration:</span>
+                          <span className="info-value">{ride.estimatedDuration || 'N/A'}</span>
+                        </div>
+                        <div className="info-item">
+                          <span className="info-label">💺 Available Seats:</span>
+                          <span className="info-value">{ride.seats || 'N/A'}</span>
+                        </div>
+                        <div className="info-item">
+                          <span className="info-label">📞 Contact:</span>
+                          <span className="info-value">{user.phone || 'Not provided'}</span>
+                        </div>
                       </div>
                       
                       {ride.notes && (
                         <div className="ride-notes">
-                          <strong>📝 Notes:</strong> {ride.notes}
+                          <strong>📝 Ride Notes:</strong> {ride.notes}
+                        </div>
+                      )}
+                      
+                      {ride.pickupPoint && (
+                        <div className="ride-notes">
+                          <strong>📍 Pickup Point:</strong> {ride.pickupPoint}
+                        </div>
+                      )}
+                      
+                      {ride.paymentMethod && (
+                        <div className="ride-notes">
+                          <strong>💳 Payment Method:</strong> {ride.paymentMethod}
                         </div>
                       )}
                       
                       <div className="booking-meta">
-                        <small>Booked on: {ride.bookingDate}</small>
+                        <small>🗓️ Booked on: {ride.bookingDate}</small>
+                        {ride.bookingId && <small> | 📋 Booking ID: {ride.bookingId}</small>}
+                        {ride.cancelledDate && (
+                          <small> 
+                            | ❌ Cancelled on: {ride.cancelledDate}
+                            {ride.cancelledTime && ` at ${ride.cancelledTime}`}
+                            {ride.cancellationReason && (
+                              <span className="cancellation-reason"> ({ride.cancellationReason})</span>
+                            )}
+                          </small>
+                        )}
                       </div>
+                      
+                      {ride.status === 'Booked' && (
+                        <div className="ride-actions">
+                          <button 
+                            className="action-btn contact-btn"
+                            onClick={() => onContactPassenger(ride)}
+                          >
+                            📞 Contact via WhatsApp
+                          </button>
+                          <button 
+                            className="action-btn start-ride-btn"
+                            onClick={() => onSendRideStartMessage(ride)}
+                          >
+                            🚀 Start Ride & Notify
+                          </button>
+                          <button 
+                            className="action-btn cancel-btn"
+                            onClick={() => onCancelRide(ride.id)}
+                            title="Cancel ride instantly - No confirmation needed"
+                          >
+                            ❌ Cancel Ride
+                          </button>
+                        </div>
+                      )}
+
+                      {ride.status === 'In Progress' && (
+                        <div className="ride-actions">
+                          <button 
+                            className="action-btn contact-btn"
+                            onClick={() => onContactPassenger(ride)}
+                          >
+                            📞 Contact via WhatsApp
+                          </button>
+                          {/* Passenger can cancel before pickup */}
+                          <button 
+                            className="action-btn cancel-before-pickup-btn"
+                            onClick={() => onCancelRide(ride.id)}
+                            title="Cancel ride instantly - Driver notified automatically via WhatsApp"
+                          >
+                            🚫 Cancel & Notify Driver
+                          </button>
+                          <div className="ride-status-info">
+                            <span className="status-text">🚀 Ride Started at: {ride.startedAt}</span>
+                            <p className="cancel-notice">💡 Click to cancel instantly - Driver gets WhatsApp notification</p>
+                          </div>
+                        </div>
+                      )}
+                      
+                      {ride.status === 'Completed' && !ride.reviewed && (
+                        <div className="ride-actions">
+                          <button className="action-btn review-btn">⭐ Rate & Review</button>
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -101,6 +200,8 @@ function UserSettings({ user, onClose, onUpdate }) {
     fullName: user.fullName || user.username || '',
     phone: user.phone || '',
     vehicle: user.vehicle || '',
+    pickupLocation: user.pickupLocation || '',
+    destination: user.destination || '',
     notifications: user.notifications !== false // default to true
   });
 
@@ -116,7 +217,7 @@ function UserSettings({ user, onClose, onUpdate }) {
         <button className="close-btn" onClick={onClose}>×</button>
         <h2>⚙️ User Settings</h2>
         
-        <form onSubmit={handleSubmit} className="settings-form">
+        <form onSubmit={handleSubmit} className="profile-form settings-form">
           <div className="form-group">
             <label>Full Name:</label>
             <input
@@ -146,6 +247,28 @@ function UserSettings({ user, onClose, onUpdate }) {
               value={settings.vehicle}
               onChange={(e) => setSettings({...settings, vehicle: e.target.value})}
               placeholder="e.g., Honda City (White) KA-01-XX-XXXX"
+            />
+          </div>
+          
+          <div className="form-group">
+            <label>📍 Preferred Pickup Location:</label>
+            <input
+              type="text"
+              value={settings.pickupLocation}
+              onChange={(e) => setSettings({...settings, pickupLocation: e.target.value})}
+              placeholder="Enter your pickup location"
+              className="location-input"
+            />
+          </div>
+          
+          <div className="form-group">
+            <label>🎯 Preferred Destination:</label>
+            <input
+              type="text"
+              value={settings.destination}
+              onChange={(e) => setSettings({...settings, destination: e.target.value})}
+              placeholder="Enter your destination"
+              className="location-input"
             />
           </div>
           
@@ -438,6 +561,210 @@ function FindRidePage({ onClose, onFindRide, availableRides }) {
   );
 }
 
+function QuickRidePage({ onClose, onQuickBook, availableRides, user }) {
+  const [quickSearch, setQuickSearch] = useState({
+    from: "",
+    to: "",
+    passengers: "1"
+  });
+  const [quickResults, setQuickResults] = useState([]);
+  const [showResults, setShowResults] = useState(false);
+
+  // Get rides available today for quick booking
+  const getCurrentTimeRides = () => {
+    const now = new Date();
+    const currentTime = now.getHours() * 60 + now.getMinutes(); // Convert to minutes
+    const today = now.toISOString().split('T')[0];
+
+    return availableRides
+      .filter(ride => {
+        if (ride.date !== today) return false;
+        
+        const [hours, minutes] = ride.time.split(':').map(Number);
+        const rideTime = hours * 60 + minutes;
+        
+        // Show all rides available today that haven't started yet
+        return rideTime >= currentTime;
+      })
+      .sort((a, b) => {
+        // Sort by time - earliest first for quick booking
+        const timeA = a.time.replace(':', '');
+        const timeB = b.time.replace(':', '');
+        return timeA - timeB;
+      });
+  };
+
+  const handleQuickSearch = (e) => {
+    e.preventDefault();
+    
+    const quickAvailableRides = getCurrentTimeRides();
+    
+    const filteredRides = quickAvailableRides.filter(ride => {
+      const fromMatch = ride.from.toLowerCase().includes(quickSearch.from.toLowerCase());
+      const toMatch = ride.to.toLowerCase().includes(quickSearch.to.toLowerCase());
+      const seatsMatch = ride.seats >= parseInt(quickSearch.passengers);
+      return fromMatch && toMatch && seatsMatch;
+    });
+
+    // Sort by time (earliest first)
+    filteredRides.sort((a, b) => {
+      const timeA = a.time.replace(':', '');
+      const timeB = b.time.replace(':', '');
+      return timeA - timeB;
+    });
+
+    setQuickResults(filteredRides);
+    setShowResults(true);
+  };
+
+  const handleQuickBook = (ride) => {
+    console.log("Quick book clicked for ride:", ride.id, "passengers:", quickSearch.passengers);
+    const passengerCount = parseInt(quickSearch.passengers) || 1; // Ensure we have a valid number
+    onQuickBook(ride, passengerCount);
+    onClose();
+  };
+
+  const allQuickRides = getCurrentTimeRides();
+
+  return (
+    <div className="overlay">
+      <div className="modal-container quick-ride-modal">
+        <button className="close-btn" onClick={onClose}>×</button>
+        <h2>⚡ Quick Ride - Book Now!</h2>
+        <p className="quick-ride-desc">� Rides available today for instant booking</p>
+        
+        <form onSubmit={handleQuickSearch} className="quick-search-form">
+          <div className="form-row">
+            <div className="form-group">
+              <label>From:</label>
+              <input
+                type="text"
+                value={quickSearch.from}
+                onChange={(e) => setQuickSearch({...quickSearch, from: e.target.value})}
+                placeholder="Current location"
+                required
+              />
+            </div>
+            <div className="form-group">
+              <label>To:</label>
+              <input
+                type="text"
+                value={quickSearch.to}
+                onChange={(e) => setQuickSearch({...quickSearch, to: e.target.value})}
+                placeholder="Where to?"
+                required
+              />
+            </div>
+          </div>
+          <div className="form-row">
+            <div className="form-group">
+              <label>Passengers:</label>
+              <input
+                type="number"
+                value={quickSearch.passengers}
+                onChange={(e) => setQuickSearch({...quickSearch, passengers: e.target.value})}
+                min="1"
+                max="8"
+              />
+            </div>
+            <button type="submit" className="quick-search-btn">⚡ Find Quick Rides</button>
+          </div>
+        </form>
+
+        {/* Show all available quick rides by default */}
+        <div className="quick-rides-section">
+          <h3>🚀 Available Now ({allQuickRides.length})</h3>
+          {allQuickRides.length === 0 ? (
+            <div className="no-quick-rides">
+              <p>😔 No rides available today for quick booking.</p>
+              <p>Try offering a ride or check "Find Ride" for future trips.</p>
+            </div>
+          ) : (
+            <div className="quick-rides-list">
+              {allQuickRides.map(ride => (
+                <div key={ride.id} className="quick-ride-card">
+                  <div className="quick-ride-header">
+                    <div className="ride-route">
+                      <span className="from">{ride.from}</span>
+                      <span className="arrow">→</span>
+                      <span className="to">{ride.to}</span>
+                    </div>
+                    <div className="ride-time-urgent">
+                      <span className="time">🕐 {ride.time}</span>
+                      <span className="urgent-badge">QUICK</span>
+                    </div>
+                  </div>
+                  <div className="quick-ride-details">
+                    <div className="ride-info-quick">
+                      <span><strong>🚗 Driver:</strong> {ride.driver}</span>
+                      <span><strong>💺 Available:</strong> {ride.seats} seats</span>
+                      <span><strong>💰 Price:</strong> ₹{ride.price}</span>
+                      <span><strong>⭐ Rating:</strong> {ride.driverRating}/5</span>
+                    </div>
+                    <button 
+                      onClick={() => handleQuickBook(ride)}
+                      className="quick-book-btn"
+                      disabled={ride.seats < parseInt(quickSearch.passengers || 1)}
+                    >
+                      ⚡ Book Instantly
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Show search results if user searched */}
+        {showResults && (
+          <div className="search-results">
+            <h3>🔍 Search Results ({quickResults.length})</h3>
+            {quickResults.length === 0 ? (
+              <div className="no-results">
+                <p>😔 No quick rides found matching your criteria.</p>
+                <p>Check the "Available Now" section above for other options.</p>
+              </div>
+            ) : (
+              <div className="quick-rides-list">
+                {quickResults.map(ride => (
+                  <div key={ride.id} className="quick-ride-card">
+                    <div className="quick-ride-header">
+                      <div className="ride-route">
+                        <span className="from">{ride.from}</span>
+                        <span className="arrow">→</span>
+                        <span className="to">{ride.to}</span>
+                      </div>
+                      <div className="ride-time-urgent">
+                        <span className="time">🕐 {ride.time}</span>
+                        <span className="urgent-badge">QUICK</span>
+                      </div>
+                    </div>
+                    <div className="quick-ride-details">
+                      <div className="ride-info-quick">
+                        <span><strong>🚗 Driver:</strong> {ride.driver}</span>
+                        <span><strong>💺 Available:</strong> {ride.seats} seats</span>
+                        <span><strong>💰 Price:</strong> ₹{ride.price}</span>
+                        <span><strong>⭐ Rating:</strong> {ride.driverRating}/5</span>
+                      </div>
+                      <button 
+                        onClick={() => handleQuickBook(ride)}
+                        className="quick-book-btn"
+                        disabled={ride.seats < parseInt(quickSearch.passengers || 1)}
+                      >
+                        ⚡ Book Instantly
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function LoginPage({ onLogin, registeredUser }) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -608,6 +935,7 @@ function App() {
   const [showSettings, setShowSettings] = useState(false);
   const [showOfferRide, setShowOfferRide] = useState(false);
   const [showFindRide, setShowFindRide] = useState(false);
+  const [showQuickRide, setShowQuickRide] = useState(false);
   const [showMyRides, setShowMyRides] = useState(false);
   const [bookingSuccess, setBookingSuccess] = useState(false);
   const [myRideHistory, setMyRideHistory] = useState([]);
@@ -616,7 +944,7 @@ function App() {
       id: 1,
       from: "City Center",
       to: "University",
-      date: "2025-08-05",
+      date: "2025-08-06", // Today's date
       time: "14:30",
       price: 50,
       seats: 2,
@@ -631,8 +959,8 @@ function App() {
       id: 2,
       from: "Mall",
       to: "Tech Park",
-      date: "2025-08-05",
-      time: "15:00",
+      date: "2025-08-06", // Today's date
+      time: "14:32",
       price: 40,
       seats: 3,
       status: "Upcoming",
@@ -646,8 +974,8 @@ function App() {
       id: 3,
       from: "Airport",
       to: "City Center",
-      date: "2025-08-05",
-      time: "16:15",
+      date: "2025-08-06", // Today's date
+      time: "14:34",
       price: 75,
       seats: 4,
       status: "Upcoming",
@@ -656,6 +984,36 @@ function App() {
       notes: "Luggage space available, AC vehicle",
       driverRating: 4.7,
       estimatedDuration: "45 mins"
+    },
+    {
+      id: 4,
+      from: "Tech Park",
+      to: "Mall",
+      date: "2025-08-06", // Today's date - Quick ride
+      time: "14:31",
+      price: 35,
+      seats: 2,
+      status: "Upcoming",
+      driver: "Sarah Wilson",
+      vehicle: "Hyundai i20 (Red) KA-04-AA-AAAA",
+      notes: "Quick ride, AC, no delays",
+      driverRating: 4.9,
+      estimatedDuration: "20 mins"
+    },
+    {
+      id: 5,
+      from: "University",
+      to: "City Center",
+      date: "2025-08-06", // Today's date - Quick ride
+      time: "14:33",
+      price: 45,
+      seats: 3,
+      status: "Upcoming",
+      driver: "Raj Patel",
+      vehicle: "Maruti Swift (Blue) KA-05-BB-BBBB",
+      notes: "Fast ride available, quick pickup",
+      driverRating: 4.6,
+      estimatedDuration: "30 mins"
     }
   ]);
   
@@ -687,13 +1045,20 @@ function App() {
       time: ride.time,
       price: ride.price,
       passengers: passengers,
-      totalPrice: ride.price * passengers,
+      totalPrice: Math.round((ride.price / passengers) * 100) / 100, // Divide total by passengers
       driver: ride.driver,
       vehicle: ride.vehicle,
       driverRating: ride.driverRating,
+      estimatedDuration: ride.estimatedDuration,
+      seats: ride.seats,
       bookingDate: new Date().toLocaleDateString(),
+      bookingId: `SR${Date.now().toString().slice(-6)}`,
       status: "Booked",
-      notes: ride.notes || ""
+      notes: ride.notes || "",
+      pickupPoint: `Near ${ride.from}`,
+      paymentMethod: "Cash on Ride",
+      driverPhone: user.phone || "+91-XXXX-XXXX-XX",
+      reviewed: false
     };
     
     // Add to ride history
@@ -714,6 +1079,183 @@ function App() {
     setShowFindRide(false);
   };
 
+  const handleQuickBook = (ride, passengers) => {
+    console.log("Main handleQuickBook called:", ride.id, passengers);
+    
+    try {
+      // Validate inputs
+      if (!ride || !passengers || passengers < 1) {
+        console.error("Invalid ride or passenger data");
+        return;
+      }
+      
+      // Create booking record (same as handleFindRide but with urgent flag)
+      const booking = {
+        id: Date.now(),
+        rideId: ride.id,
+        from: ride.from,
+        to: ride.to,
+        date: ride.date,
+        time: ride.time,
+        price: ride.price,
+        passengers: passengers,
+        totalPrice: Math.round((ride.price / passengers) * 100) / 100, // Divide total by passengers
+        driver: ride.driver,
+        vehicle: ride.vehicle,
+        driverRating: ride.driverRating,
+        estimatedDuration: ride.estimatedDuration,
+        seats: ride.seats,
+        bookingDate: new Date().toLocaleDateString(),
+        bookingId: `QR${Date.now().toString().slice(-6)}`, // QR for Quick Ride
+        status: "Booked",
+        notes: ride.notes + " [QUICK RIDE - Fast Booking]",
+        pickupPoint: `Near ${ride.from}`,
+        paymentMethod: "Cash on Ride",
+        driverPhone: user.phone || "+91-XXXX-XXXX-XX",
+        reviewed: false,
+        isQuickRide: true // Flag for quick rides
+      };
+      
+      console.log("Creating booking:", booking);
+      
+      // Add to ride history
+      setMyRideHistory(prevHistory => [booking, ...prevHistory]);
+      
+      // Update available seats
+      const updatedRides = availableRides.map(r => {
+        if (r.id === ride.id) {
+          return { ...r, seats: r.seats - passengers };
+        }
+        return r;
+      });
+      setAvailableRides(updatedRides);
+      
+      console.log("Quick ride booking successful!");
+      
+      // Show success message
+      setBookingSuccess(true);
+      setTimeout(() => setBookingSuccess(false), 3000);
+      setShowQuickRide(false);
+    } catch (error) {
+      console.error("Error in quick booking:", error);
+    }
+  };
+
+  const handleCancelRide = (rideId) => {
+    const rideToCancel = myRideHistory.find(ride => ride.id === rideId);
+    
+    // Different cancellation reasons based on ride status
+    let cancellationReason = "";
+    
+    if (rideToCancel?.status === "In Progress") {
+      cancellationReason = "Cancelled before pickup";
+    } else {
+      cancellationReason = "Cancelled by passenger";
+    }
+    
+    // Update ride status to "Cancelled" directly
+    setMyRideHistory(prevHistory => 
+      prevHistory.map(ride => 
+        ride.id === rideId 
+          ? { 
+              ...ride, 
+              status: "Cancelled", 
+              cancelledDate: new Date().toLocaleDateString(),
+              cancelledTime: new Date().toLocaleTimeString(),
+              cancellationReason: cancellationReason
+            }
+          : ride
+      )
+    );
+    
+    // Restore seats to available rides (add back the cancelled seats)
+    const cancelledRide = myRideHistory.find(ride => ride.id === rideId);
+    if (cancelledRide) {
+      setAvailableRides(prevRides => 
+        prevRides.map(ride => 
+          ride.id === cancelledRide.rideId 
+            ? { ...ride, seats: ride.seats + cancelledRide.passengers }
+            : ride
+        )
+      );
+    }
+    
+    // Automatically notify driver if ride was in progress
+    if (rideToCancel?.status === "In Progress") {
+      handleNotifyDriverOfCancellation(rideToCancel);
+    }
+    
+    // Show success notification
+    setBookingSuccess(true);
+    setTimeout(() => setBookingSuccess(false), 4000);
+  };
+
+  const handleNotifyDriverOfCancellation = (ride) => {
+    const message = `⚠️ RIDE CANCELLATION NOTICE: Passenger has cancelled the ride from ${ride.from} to ${ride.to} before pickup. Booking ID: ${ride.bookingId}. Passenger: ${user.fullName || user.username}. No penalty for pre-pickup cancellation. Seat is now available for other passengers.`;
+    const driverPhone = ride.driverPhone?.replace(/[^0-9]/g, '') || '';
+    
+    if (driverPhone) {
+      const whatsappUrl = `https://wa.me/91${driverPhone}?text=${encodeURIComponent(message)}`;
+      window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
+    }
+  };
+
+  const handleContactPassenger = (ride) => {
+    const message = `Hi! This is ${user.fullName || user.username}, your driver for the ride from ${ride.from} to ${ride.to} scheduled at ${ride.time} today. I'm starting the ride soon. Please be ready at the pickup point: ${ride.pickupPoint}. Booking ID: ${ride.bookingId}`;
+    const phoneNumber = ride.driverPhone?.replace(/[^0-9]/g, '') || ''; // Remove non-numeric characters
+    
+    if (phoneNumber) {
+      // Open WhatsApp with pre-filled message
+      const whatsappUrl = `https://wa.me/91${phoneNumber}?text=${encodeURIComponent(message)}`;
+      window.open(whatsappUrl, '_blank');
+    }
+  };
+
+  const handleSendRideStartMessage = (ride) => {
+    const message = `🚗 RIDE STARTED! Hi, your ride from ${ride.from} to ${ride.to} has started. Driver: ${user.fullName || user.username}. Vehicle: ${ride.vehicle}. Booking ID: ${ride.bookingId}. Estimated arrival: ${ride.estimatedDuration}. Safe journey!`;
+    const phoneNumber = ride.driverPhone?.replace(/[^0-9]/g, '') || '';
+    
+    if (phoneNumber) {
+      // Show loading state
+      const originalButton = event?.target;
+      if (originalButton) {
+        originalButton.textContent = '🔄 Opening WhatsApp...';
+        originalButton.disabled = true;
+      }
+      
+      // Create WhatsApp URL with message
+      const whatsappUrl = `https://wa.me/91${phoneNumber}?text=${encodeURIComponent(message)}`;
+      
+      // Open WhatsApp immediately
+      const whatsappWindow = window.open(whatsappUrl, '_blank', 'noopener,noreferrer,width=800,height=600');
+      
+      // Mark ride as started immediately
+      setMyRideHistory(prevHistory => 
+        prevHistory.map(r => 
+          r.id === ride.id 
+            ? { ...r, status: "In Progress", startedAt: new Date().toLocaleTimeString() }
+            : r
+        )
+      );
+      
+      // Reset button after a delay
+      setTimeout(() => {
+        if (originalButton) {
+          originalButton.textContent = '✅ WhatsApp Opened!';
+          setTimeout(() => {
+            originalButton.textContent = '🚀 Start Ride & Notify';
+            originalButton.disabled = false;
+          }, 2000);
+        }
+      }, 1000);
+      
+      // Show success notification
+      setBookingSuccess(true);
+      setTimeout(() => setBookingSuccess(false), 4000);
+      
+    }
+  };
+
   if (user) {
     console.log("User is logged in, showing main dashboard");
     return (
@@ -730,6 +1272,19 @@ function App() {
         )}
         
         <div className="main-dashboard">
+          {/* Success Notification */}
+          {bookingSuccess && (
+            <div className="success-notification whatsapp-notification">
+              <div className="notification-content">
+                <span className="notification-icon">✅</span>
+                <div className="notification-text">
+                  <h3>Action Completed Successfully!</h3>
+                  <p>WhatsApp message sent automatically. Check your WhatsApp.</p>
+                </div>
+              </div>
+            </div>
+          )}
+          
           {/* Header with navigation */}
           <header className="dashboard-header">
             <div className="header-left">
@@ -764,6 +1319,13 @@ function App() {
               <div className="card-icon">🔍</div>
               <h3>Find a Ride</h3>
               <p>Book affordable rides to your destination</p>
+            </div>
+            
+            <div className="action-card quick-ride-card" onClick={() => setShowQuickRide(true)}>
+              <div className="card-icon urgent-icon">⚡</div>
+              <h3>Quick Ride</h3>
+              <p>Rides available today for quick booking</p>
+              <span className="urgent-badge-small">QUICK</span>
             </div>
             
             <div className="action-card" onClick={() => setShowMyRides(true)}>
@@ -805,6 +1367,9 @@ function App() {
             user={user}
             onClose={() => setShowMyRides(false)}
             rideHistory={myRideHistory}
+            onCancelRide={handleCancelRide}
+            onContactPassenger={handleContactPassenger}
+            onSendRideStartMessage={handleSendRideStartMessage}
           />
         )}
         
@@ -832,6 +1397,15 @@ function App() {
             onClose={() => setShowFindRide(false)}
             onFindRide={handleFindRide}
             availableRides={availableRides}
+          />
+        )}
+        
+        {showQuickRide && (
+          <QuickRidePage 
+            onClose={() => setShowQuickRide(false)}
+            onQuickBook={handleQuickBook}
+            availableRides={availableRides}
+            user={user}
           />
         )}
       </>
