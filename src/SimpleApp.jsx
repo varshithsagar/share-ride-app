@@ -999,6 +999,7 @@ function App() {
   const [showMyRides, setShowMyRides] = useState(false);
   const [bookingSuccess, setBookingSuccess] = useState(false);
   const [cancellationSuccess, setCancellationSuccess] = useState(false);
+  const [locationPermissionGuide, setLocationPermissionGuide] = useState(false);
   const [myRideHistory, setMyRideHistory] = useState([
     {
       id: 101,
@@ -1328,10 +1329,17 @@ function App() {
   const handleNavigateToPassenger = (ride) => {
     const pickupLocation = ride.pickupPoint || ride.from;
     
+    // Show location permission request notification
+    setNotificationMessage('📍 Allow location access for precise navigation!');
+    setBookingSuccess(true);
+    
     // Get current location and create navigation URLs that auto-start navigation
     navigator.geolocation.getCurrentPosition(
       (position) => {
         const { latitude, longitude } = position.coords;
+        
+        // Update notification to show success
+        setNotificationMessage('🗺️ Auto-navigation to passenger started!');
         
         // URLs that automatically start navigation from current location to pickup point
         const autoNavUrl1 = `https://www.google.com/maps/dir/${latitude},${longitude}/${encodeURIComponent(pickupLocation)}/@${latitude},${longitude},15z/data=!4m2!4m1!3e0?entry=ttu`;
@@ -1346,8 +1354,32 @@ function App() {
           setTimeout(() => window.open(autoNavUrl2, '_blank'), 500);
           setTimeout(() => window.open(autoNavUrl3, '_blank'), 1000);
         }
+        
+        // Hide notification after successful navigation
+        setTimeout(() => {
+          setBookingSuccess(false);
+          setNotificationMessage('');
+        }, 4000);
       },
       (error) => {
+        // Handle different types of location errors with specific messages
+        let errorMessage = '';
+        switch(error.code) {
+          case error.PERMISSION_DENIED:
+            errorMessage = '⚠️ Location blocked! Using destination-only navigation.';
+            break;
+          case error.POSITION_UNAVAILABLE:
+            errorMessage = '⚠️ Location unavailable! Using destination-only navigation.';
+            break;
+          case error.TIMEOUT:
+            errorMessage = '⚠️ Location timeout! Using destination-only navigation.';
+            break;
+          default:
+            errorMessage = '⚠️ Location error! Using destination-only navigation.';
+        }
+        
+        setNotificationMessage(errorMessage);
+        
         // Fallback if location access denied - use destination-only URLs
         const mapsUrl1 = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(pickupLocation)}&travelmode=driving&dir_action=navigate`;
         const mapsUrl2 = `https://maps.google.com/maps?daddr=${encodeURIComponent(pickupLocation)}`;
@@ -1356,6 +1388,17 @@ function App() {
         if (!mapWindow) {
           setTimeout(() => window.open(mapsUrl2, '_blank'), 500);
         }
+        
+        // Hide error notification
+        setTimeout(() => {
+          setBookingSuccess(false);
+          setNotificationMessage('');
+        }, 5000);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 60000
       }
     );
     
@@ -1370,14 +1413,6 @@ function App() {
         window.open(whatsappUrl, '_blank');
       }, 1000);
     }
-    
-    // Show visual feedback with specific message
-    setNotificationMessage('🗺️ Auto-navigation to passenger started!');
-    setBookingSuccess(true);
-    setTimeout(() => {
-      setBookingSuccess(false);
-      setNotificationMessage('');
-    }, 4000);
   };
 
   // Track success notification state
@@ -1684,6 +1719,45 @@ function App() {
           </>
         )}
       </div>
+      
+      {/* Location Permission Guide Modal */}
+      {locationPermissionGuide && (
+        <div className="overlay">
+          <div className="modal-container location-guide-modal">
+            <button className="close-btn" onClick={() => setLocationPermissionGuide(false)}>×</button>
+            <h2>📍 Location Permission Required</h2>
+            <div className="location-guide-content">
+              <div className="guide-step">
+                <span className="step-icon">🚗</span>
+                <div className="step-text">
+                  <h3>Why do we need your location?</h3>
+                  <p>To provide accurate navigation from your current position to the passenger's pickup point.</p>
+                </div>
+              </div>
+              <div className="guide-step">
+                <span className="step-icon">🔒</span>
+                <div className="step-text">
+                  <h3>Your location is safe</h3>
+                  <p>We only use your location for navigation. It's not stored or shared with anyone.</p>
+                </div>
+              </div>
+              <div className="guide-step">
+                <span className="step-icon">📱</span>
+                <div className="step-text">
+                  <h3>How to allow permission:</h3>
+                  <p>Click "Allow" when your browser asks for location access. Look for the location icon in your address bar.</p>
+                </div>
+              </div>
+              <button 
+                className="action-btn allow-location-btn"
+                onClick={() => setLocationPermissionGuide(false)}
+              >
+                ✓ I Understand, Continue
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
