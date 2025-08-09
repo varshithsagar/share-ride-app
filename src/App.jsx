@@ -2,6 +2,40 @@ import React, { useState, useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet';
 import L from 'leaflet';
 import './App.css';
+import TestIcons from './TestIcons.jsx';
+
+// Import React Icons
+import { 
+  FaCar, FaSearch, FaUser, FaLock, FaUserPlus, FaSignOutAlt, 
+  FaMapMarkerAlt, FaClock, FaCalendarAlt, FaUsers, FaRupeeSign,
+  FaRoute, FaPhone, FaEnvelope, FaEdit, FaSave, FaTimes, FaFlag,
+  FaReceipt, FaHistory, FaWallet, FaCog, FaExclamationTriangle,
+  FaCheckCircle, FaStar, FaArrowRight, FaPlay, FaClipboardList,
+  FaHome, FaPlus, FaMinus, FaRefresh, FaMap, FaBell, FaShield
+} from 'react-icons/fa';
+
+import { 
+  MdDirectionsCar, MdLocationOn, MdSchedule, MdPeople, MdPayment,
+  MdSettings, MdNotifications, MdDashboard, MdEmergencyShare
+} from 'react-icons/md';
+
+import { 
+  IoCarSport, IoLocation, IoTime, IoPersonAdd, IoLogOut,
+  IoNavigate, IoCheckmarkCircle, IoCloseCircle
+} from 'react-icons/io5';
+
+import { 
+  BiTrip, BiUser, BiCar, BiMap
+} from 'react-icons/bi';
+
+import { 
+  AiOutlineUser, AiOutlineCar, AiOutlinePhone, AiOutlineMail
+} from 'react-icons/ai';
+
+// Temporary test - comment this out once icons are confirmed working
+function App() {
+  return <TestIcons />;
+}
 
 // Fix for default markers in Leaflet
 delete L.Icon.Default.prototype._getIconUrl;
@@ -71,7 +105,7 @@ function MapComponent({ rides, showRoute = false, selectedRide = null }) {
               <Marker position={pickupCoords} icon={pickupIcon}>
                 <Popup>
                   <div className="map-popup">
-                    <h4>🚗 Pickup Location</h4>
+                    <h4><FaCar className="popup-icon" /> Pickup Location</h4>
                     <p><strong>{ride.from}</strong></p>
                     <p>Driver: {ride.driver}</p>
                     <p>Time: {ride.time}</p>
@@ -85,7 +119,7 @@ function MapComponent({ rides, showRoute = false, selectedRide = null }) {
               <Marker position={dropoffCoords} icon={dropoffIcon}>
                 <Popup>
                   <div className="map-popup">
-                    <h4>🏁 Drop-off Location</h4>
+                    <h4><FaMapMarkerAlt className="popup-icon" /> Drop-off Location</h4>
                     <p><strong>{ride.to}</strong></p>
                     <p>Driver: {ride.driver}</p>
                     <p>Duration: {ride.estimatedDuration || 'N/A'}</p>
@@ -157,12 +191,12 @@ function LoginPage({ onLogin, registeredUser }) {
 
   return (
     <div className="form-container">
-      <h2>🔐 Login</h2>
+      <h2><FaLock className="form-icon" /> Login</h2>
       <form onSubmit={handleSubmit}>
         <div>
           <label>Username:</label>
           <div className="input-wrapper">
-            <span className="input-icon">👤</span>
+            <FaUser className="input-icon" />
             <input
               type="text"
               value={username}
@@ -175,7 +209,7 @@ function LoginPage({ onLogin, registeredUser }) {
         <div>
           <label>Password:</label>
           <div className="input-wrapper">
-            <span className="input-icon">🔒</span>
+            <FaLock className="input-icon" />
             <input
               type="password"
               value={password}
@@ -185,8 +219,8 @@ function LoginPage({ onLogin, registeredUser }) {
             />
           </div>
         </div>
-        {error && <p className="error">❌ {error}</p>}
-        <button type="submit" className="login-btn">🚀 Login</button>
+        {error && <p className="error"><FaExclamationTriangle className="error-icon" /> {error}</p>}
+        <button type="submit" className="login-btn"><FaPlay className="btn-icon" /> Login</button>
       </form>
     </div>
   );
@@ -228,12 +262,12 @@ function RegistrationPage({ onRegister }) {
 
   return (
     <div className="form-container">
-      <h2>📝 Register</h2>
+      <h2><FaUserPlus className="form-icon" /> Register</h2>
       <form onSubmit={handleSubmit}>
         <div>
           <label>Username:</label>
           <div className="input-wrapper">
-            <span className="input-icon">👤</span>
+            <FaUser className="input-icon" />
             <input
               type="text"
               value={username}
@@ -246,7 +280,7 @@ function RegistrationPage({ onRegister }) {
         <div>
           <label>Password:</label>
           <div className="input-wrapper">
-            <span className="input-icon">🔒</span>
+            <FaLock className="input-icon" />
             <input
               type="password"
               value={password}
@@ -259,7 +293,7 @@ function RegistrationPage({ onRegister }) {
         <div>
           <label>Confirm Password:</label>
           <div className="input-wrapper">
-            <span className="input-icon">🔐</span>
+            <FaLock className="input-icon" />
             <input
               type="password"
               value={confirmPassword}
@@ -270,15 +304,15 @@ function RegistrationPage({ onRegister }) {
           </div>
         </div>
 
-        {error && <p className="error">❌ {error}</p>}
-        {success && <p className="success">✅ {success}</p>}
-        <button type="submit" className="login-btn">🎉 Register</button>
+        {error && <p className="error"><FaExclamationTriangle className="error-icon" /> {error}</p>}
+        {success && <p className="success"><FaCheckCircle className="success-icon" /> {success}</p>}
+        <button type="submit" className="login-btn"><FaUserPlus className="btn-icon" /> Register</button>
       </form>
       {success && (
         <div className="registration-success">
           <div>
-            <h3>🎉 Registration Successful!</h3>
-            <p>✨ Redirecting to login...</p>
+            <h3><FaCheckCircle className="success-icon" /> Registration Successful!</h3>
+            <p><FaStar className="star-icon" /> Redirecting to login...</p>
           </div>
         </div>
       )}
@@ -308,8 +342,8 @@ function ProfilePage({ user, onClose, onUpdate }) {
   return (
     <div className="profile-overlay">
       <div className="profile-container">
-        <button className="close-btn" onClick={onClose}>×</button>
-        <h2>👤 My Profile</h2>
+        <button className="close-btn" onClick={onClose}><FaTimes /></button>
+        <h2><FaUser className="modal-icon" /> My Profile</h2>
         
         {isEditing ? (
           <form onSubmit={handleSubmit} className="profile-form">
@@ -412,7 +446,7 @@ function ProfilePage({ user, onClose, onUpdate }) {
             </div>
 
             <button onClick={() => setIsEditing(true)} className="edit-btn">
-              <span className="icon">✏️</span> Edit Profile
+              <FaEdit className="icon" /> Edit Profile
             </button>
           </div>
         )}
@@ -923,7 +957,11 @@ function App() {
       password: userData.password
     };
     setRegisteredUser(registeredData);
-    setIsRegistering(false);
+    // Auto-login after successful registration
+    setTimeout(() => {
+      setUser(registeredData);
+      setIsRegistering(false);
+    }, 2000); // Wait for success animation to complete
   };
 
   if (user) {
@@ -944,45 +982,148 @@ function App() {
             <span className="welcome-text">Welcome,</span>
             <span className="username">{user.username}</span>
           </div>
-          <h2>🚗 Share Your Ride – Save Time, Money & the Planet!</h2>
+          <h2><FaCar className="main-icon" /> Share Your Ride – Save Time, Money & the Planet!</h2>
           
           <div className="ride-actions">
             <button className="action-btn offer-ride" onClick={() => setShowOfferRide(true)}>
-              <span className="icon">🚙</span>
+              <FaCar className="icon" />
               Offer a Ride
             </button>
             <button className="action-btn find-ride" onClick={() => setShowFindRide(true)}>
-              <span className="icon">🔍</span>
+              <FaSearch className="icon" />
               Find a Ride
             </button>
           </div>
 
           {!showOfferRide && !showFindRide && (
-            <div className="welcome-content">
-              <div className="welcome-message">
-                <h3>🚗 Welcome to Share Ride!</h3>
-                <p>Choose an option above to get started with your ride sharing experience.</p>
+            <>
+              {/* Dashboard Menu - Mobile App Style */}
+              <div className="dashboard-menu">
+                <div className="dashboard-menu-item offer-ride" onClick={() => setShowOfferRide(true)}>
+                  <div className="dashboard-menu-header">
+                    <div className="dashboard-menu-icon"><FaCar /></div>
+                    <h3 className="dashboard-menu-title">Offer a Ride</h3>
+                  </div>
+                  <p className="dashboard-menu-description">Share your journey and earn money</p>
+                  <button 
+                    className="feature-action-btn offer-action"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowOfferRide(true);
+                    }}
+                  >
+                    <FaArrowRight className="action-icon" />
+                    <span>Start Offering</span>
+                  </button>
+                </div>
+                
+                <div className="dashboard-menu-item my-trips" onClick={() => setShowMyRides(true)}>
+                  <div className="dashboard-menu-header">
+                    <div className="dashboard-menu-icon"><FaClipboardList /></div>
+                    <h3 className="dashboard-menu-title">My Trips</h3>
+                  </div>
+                  <p className="dashboard-menu-description">View your booking history</p>
+                  <button 
+                    className="feature-action-btn trips-action"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowMyRides(true);
+                    }}
+                  >
+                    <FaHistory className="action-icon" />
+                    <span>View Trips</span>
+                  </button>
+                </div>
+                
+                <div className="dashboard-menu-item profile" onClick={() => setShowProfile(true)}>
+                  <div className="dashboard-menu-header">
+                    <div className="dashboard-menu-icon"><FaUser /></div>
+                    <h3 className="dashboard-menu-title">Profile</h3>
+                  </div>
+                  <p className="dashboard-menu-description">Manage your account settings</p>
+                  <button 
+                    className="feature-action-btn profile-action"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowProfile(true);
+                    }}
+                  >
+                    <FaCog className="action-icon" />
+                    <span>Edit Profile</span>
+                  </button>
+                </div>
               </div>
-            </div>
+              
+              {/* Quick Action Buttons */}
+              <div className="quick-actions">
+                <button className="quick-action-btn find-ride-btn" onClick={() => setShowFindRide(true)}>
+                  <FaSearch className="quick-action-icon" />
+                  <span className="quick-action-text">Find a Ride</span>
+                </button>
+                <button className="quick-action-btn emergency-btn" onClick={() => alert('Emergency contacts: 911')}>
+                  <FaShield className="quick-action-icon" />
+                  <span className="quick-action-text">Emergency</span>
+                </button>
+              </div>
+              
+              {/* Additional Feature Actions */}
+              <div className="additional-actions">
+                <button className="additional-action-btn history-btn" onClick={() => setShowMyRides(true)}>
+                  <FaHistory className="additional-icon" />
+                  <span>Ride History</span>
+                </button>
+                <button className="additional-action-btn wallet-btn" onClick={() => alert('Wallet feature coming soon!')}>
+                  <FaWallet className="additional-icon" />
+                  <span>My Wallet</span>
+                </button>
+                <button className="additional-action-btn settings-btn" onClick={() => setShowProfile(true)}>
+                  <FaCog className="additional-icon" />
+                  <span>Settings</span>
+                </button>
+              </div>
+              
+              <div className="welcome-content">
+                <div className="welcome-message">
+                  <h3><FaCar className="welcome-icon" /> Welcome to Share Ride!</h3>
+                  <p>Choose an option above to get started with your ride sharing experience.</p>
+                </div>
+              </div>
+            </>
           )}
 
           {showOfferRide && (
             <div className="offer-ride-form">
-              <h3>Offer a New Ride</h3>
+              <h3><FaCar className="form-header-icon" /> Offer a New Ride</h3>
               <form onSubmit={handleOfferRide} className="ride-form">
+                
+                {/* Trip Type Section */}
+                <div className="form-section-header"><BiTrip className="section-icon" /> Trip Type:</div>
+                <div className="form-group">
+                  <select 
+                    value={newRide.tripType || 'regular'}
+                    onChange={(e) => setNewRide({...newRide, tripType: e.target.value})}
+                  >
+                    <option value="regular">Regular Trip</option>
+                    <option value="express">Express Trip</option>
+                    <option value="roundtrip">Round Trip</option>
+                  </select>
+                </div>
+
+                {/* Route Information Section */}
+                <div className="form-section-header"><FaRoute className="section-icon" /> Route Information</div>
                 <div className="form-row">
                   <div className="form-group">
-                    <label>From</label>
+                    <label>From:</label>
                     <input
                       type="text"
                       required
-                      placeholder="Starting point"
+                      placeholder="Pickup location"
                       value={newRide.from}
                       onChange={(e) => setNewRide({...newRide, from: e.target.value})}
                     />
                   </div>
                   <div className="form-group">
-                    <label>To</label>
+                    <label>To:</label>
                     <input
                       type="text"
                       required
@@ -992,9 +1133,12 @@ function App() {
                     />
                   </div>
                 </div>
+
+                {/* Schedule Section */}
+                <div className="form-section-header"><FaCalendarAlt className="section-icon" /> Schedule</div>
                 <div className="form-row">
                   <div className="form-group">
-                    <label>Date</label>
+                    <label>Departure Date:</label>
                     <input
                       type="date"
                       required
@@ -1003,7 +1147,7 @@ function App() {
                     />
                   </div>
                   <div className="form-group">
-                    <label>Time</label>
+                    <label>Departure Time:</label>
                     <input
                       type="time"
                       required
@@ -1012,9 +1156,12 @@ function App() {
                     />
                   </div>
                 </div>
+
+                {/* Ride Details Section */}
+                <div className="form-section-header"><FaUsers className="section-icon" /> Ride Details</div>
                 <div className="form-row">
                   <div className="form-group">
-                    <label>Available Seats</label>
+                    <label>Available Seats:</label>
                     <input
                       type="number"
                       required
@@ -1025,18 +1172,33 @@ function App() {
                     />
                   </div>
                   <div className="form-group">
-                    <label>Price per Seat (₹)</label>
+                    <label>Price per Seat (₹):</label>
                     <input
                       type="number"
                       required
                       min="0"
+                      placeholder="Price per seat"
                       value={newRide.price}
                       onChange={(e) => setNewRide({...newRide, price: e.target.value})}
                     />
                   </div>
                 </div>
+
+                {/* Vehicle Details Section */}
                 <div className="form-group">
-                  <label>Additional Notes</label>
+                  <label>Vehicle Details:</label>
+                  <input
+                    type="text"
+                    placeholder="Car model, color, and license plate"
+                    value={newRide.vehicle || ''}
+                    onChange={(e) => setNewRide({...newRide, vehicle: e.target.value})}
+                  />
+                </div>
+
+                {/* Ride Summary Section */}
+                <div className="form-section-header"><FaClipboardList className="section-icon" /> Ride Summary</div>
+                <div className="form-group">
+                  <label>Additional Notes:</label>
                   <textarea
                     rows="3"
                     placeholder="Any specific details about the ride..."
@@ -1044,9 +1206,14 @@ function App() {
                     onChange={(e) => setNewRide({...newRide, notes: e.target.value})}
                   ></textarea>
                 </div>
+
                 <div className="form-actions">
-                  <button type="submit" className="submit-ride-btn">Offer Ride</button>
-                  <button type="button" className="cancel-ride-btn" onClick={() => setShowOfferRide(false)}>Cancel</button>
+                  <button type="submit" className="submit-ride-btn">
+                    <FaPlay className="btn-icon" /> Offer Ride
+                  </button>
+                  <button type="button" className="cancel-ride-btn" onClick={() => setShowOfferRide(false)}>
+                    <FaTimes className="btn-icon" /> Cancel
+                  </button>
                 </div>
               </form>
             </div>
@@ -1143,13 +1310,13 @@ function App() {
                   
                   {searchBookingSuccess && (
                     <div className="search-booking-success">
-                      🎉 Ride booked successfully! Your booking has been confirmed and added to "My Rides"
+                      <FaCheckCircle className="success-icon" /> Ride booked successfully! Your booking has been confirmed and added to "My Rides"
                     </div>
                   )}
                   
                   <div className="search-results-header">
                     <div className="search-results-info">
-                      <h4>🔍 Search Results ({searchResults.length} ride{searchResults.length !== 1 ? 's' : ''} found)</h4>
+                      <h4><FaSearch className="header-icon" /> Search Results ({searchResults.length} ride{searchResults.length !== 1 ? 's' : ''} found)</h4>
                       {lastSearchTime && (
                         <p className="last-updated">
                           Last updated: {lastSearchTime.toLocaleTimeString()}
@@ -1162,7 +1329,7 @@ function App() {
                         onClick={refreshSearchResults}
                         title="Refresh search results"
                       >
-                        🔄 Refresh
+                        <FaRefresh className="btn-icon" /> Refresh
                       </button>
                       <label className="auto-refresh-toggle">
                         <input
@@ -1177,7 +1344,7 @@ function App() {
                           className="map-toggle-btn"
                           onClick={() => setShowMap(!showMap)}
                         >
-                          {showMap ? '📋 Show List' : '🗺️ Show Map'}
+                          {showMap ? <><FaClipboardList className="btn-icon" /> Show List</> : <><FaMap className="btn-icon" /> Show Map</>}
                         </button>
                       </div>
                       <button 
@@ -1227,7 +1394,7 @@ function App() {
                           
                           <div className="ride-card-details">
                             <div className="detail-row">
-                              <span className="detail-icon">📅</span>
+                              <FaCalendarAlt className="detail-icon" />
                               <span className="detail-text">{new Date(ride.date).toLocaleDateString('en-US', { 
                                 weekday: 'short',
                                 year: 'numeric',
@@ -1237,38 +1404,38 @@ function App() {
                             </div>
                             
                             <div className="detail-row">
-                              <span className="detail-icon">👤</span>
+                              <FaUser className="detail-icon" />
                               <span className="detail-text">{ride.driver}</span>
                               {ride.driverRating && (
-                                <span className="driver-rating">⭐ {ride.driverRating}</span>
+                                <span className="driver-rating"><FaStar className="star-icon" /> {ride.driverRating}</span>
                               )}
                             </div>
                             
                             <div className="detail-row">
-                              <span className="detail-icon">🚗</span>
+                              <FaCar className="detail-icon" />
                               <span className="detail-text">{ride.vehicle}</span>
                             </div>
                             
                             <div className="detail-row">
-                              <span className="detail-icon">💺</span>
+                              <FaUsers className="detail-icon" />
                               <span className="detail-text">
                                 {ride.seats > 0 ? `${ride.seats} seat${ride.seats !== 1 ? 's' : ''} available` : 'Fully booked'}
                               </span>
                               {ride.seats <= 2 && ride.seats > 0 && (
-                                <span className="low-seats-warning">⚠️ Few seats left!</span>
+                                <span className="low-seats-warning"><FaExclamationTriangle className="warning-icon" /> Few seats left!</span>
                               )}
                             </div>
                             
                             {ride.estimatedDuration && (
                               <div className="detail-row">
-                                <span className="detail-icon">⏱️</span>
+                                <FaClock className="detail-icon" />
                                 <span className="detail-text">{ride.estimatedDuration}</span>
                               </div>
                             )}
                             
                             {ride.notes && (
                               <div className="detail-row">
-                                <span className="detail-icon">📝</span>
+                                <FaClipboardList className="detail-icon" />
                                 <span className="detail-text">{ride.notes}</span>
                               </div>
                             )}
@@ -1288,7 +1455,7 @@ function App() {
                     </div>
                   ) : (
                     <div className="no-results">
-                      <div className="no-results-icon">😔</div>
+                      <div className="no-results-icon"><FaExclamationTriangle /></div>
                       <h4>No rides found</h4>
                       <p>Try adjusting your search criteria or check back later for new rides.</p>
                       <button 
@@ -1301,7 +1468,7 @@ function App() {
                           setShowFindRide(true);
                         }}
                       >
-                        🔍 Search Again
+                        <FaSearch className="btn-icon" /> Search Again
                       </button>
                     </div>
                   )}
@@ -1312,31 +1479,31 @@ function App() {
 
           <div className="action-buttons">
             <button className="profile-btn" onClick={() => setShowProfile(true)}>
-              <span className="icon">👤</span>
+              <FaUser className="icon" />
               My Profile
             </button>
             <button className="my-rides-btn" onClick={() => setShowMyRides(true)}>
-              <span className="icon">🚗</span>
+              <FaCar className="icon" />
               My Rides
             </button>
             {showMyRides && (
               <div className="profile-overlay">
                 <div className="profile-container">
-                  <button className="close-btn" onClick={() => setShowMyRides(false)}>×</button>
-                  <h2>🚗 My Rides</h2>
+                  <button className="close-btn" onClick={() => setShowMyRides(false)}><FaTimes /></button>
+                  <h2><FaCar className="modal-icon" /> My Rides</h2>
                   
                   <div className="rides-tabs">
                     <button 
                       className={`rides-tab ${activeRidesTab === 'upcoming' ? 'active' : ''}`}
                       onClick={() => setActiveRidesTab('upcoming')}
                     >
-                      <span className="icon">📅</span> Upcoming
+                      <FaCalendarAlt className="icon" /> Upcoming
                     </button>
                     <button 
                       className={`rides-tab ${activeRidesTab === 'history' ? 'active' : ''}`}
                       onClick={() => setActiveRidesTab('history')}
                     >
-                      <span className="icon">📖</span> History
+                      <FaHistory className="icon" /> History
                     </button>
                   </div>
 
@@ -1362,7 +1529,7 @@ function App() {
                               
                               <div className="history-details">
                                 <div className="history-detail">
-                                  <div className="history-detail-icon">🚗</div>
+                                  <div className="history-detail-icon"><FaCar /></div>
                                   <div className="history-detail-content">
                                     <div className="history-detail-label">Route</div>
                                     <div className="history-detail-value">{ride.from} → {ride.to}</div>
@@ -1370,7 +1537,7 @@ function App() {
                                 </div>
                                 
                                 <div className="history-detail">
-                                  <div className="history-detail-icon">👤</div>
+                                  <div className="history-detail-icon"><FaUser /></div>
                                   <div className="history-detail-content">
                                     <div className="history-detail-label">Driver</div>
                                     <div className="history-detail-value">{ride.driver}</div>
@@ -1378,7 +1545,7 @@ function App() {
                                 </div>
 
                                 <div className="history-detail">
-                                  <div className="history-detail-icon">🚘</div>
+                                  <div className="history-detail-icon"><MdDirectionsCar /></div>
                                   <div className="history-detail-content">
                                     <div className="history-detail-label">Vehicle</div>
                                     <div className="history-detail-value">{ride.vehicle}</div>
@@ -1387,7 +1554,7 @@ function App() {
 
                                 {ride.status === 'completed' && (
                                   <div className="history-detail">
-                                    <div className="history-detail-icon">⭐</div>
+                                    <div className="history-detail-icon"><FaStar /></div>
                                     <div className="history-detail-content">
                                       <div className="history-detail-label">Rating</div>
                                       <div className="history-detail-value">{ride.rating} / 5</div>
@@ -1397,7 +1564,7 @@ function App() {
 
                                 {ride.status === 'cancelled' && (
                                   <div className="history-detail">
-                                    <div className="history-detail-icon">ℹ️</div>
+                                    <div className="history-detail-icon"><FaExclamationTriangle /></div>
                                     <div className="history-detail-content">
                                       <div className="history-detail-label">Cancellation Reason</div>
                                       <div className="history-detail-value">{ride.cancellationReason}</div>
@@ -1426,7 +1593,7 @@ function App() {
 
                               <div className="history-actions">
                                 <button className="history-action-btn action-receipt">
-                                  <span className="icon">📄</span> Receipt
+                                  <FaReceipt className="icon" /> Receipt
                                 </button>
                                 <button 
                                   className="history-action-btn action-report"
@@ -1435,7 +1602,7 @@ function App() {
                                     setShowIssueForm(true);
                                   }}
                                 >
-                                  <span className="icon">🚩</span> Report Issue
+                                  <FaFlag className="icon" /> Report Issue
                                 </button>
                               </div>
                             </div>
@@ -1469,7 +1636,7 @@ function App() {
                           
                           <div className="ride-details">
                             <div className="ride-detail-item">
-                              <span className="detail-icon">🚗</span>
+                              <FaCar className="detail-icon" />
                               <div className="detail-content">
                                 <div className="detail-label">Route</div>
                                 <div className="detail-value">{ride.from} → {ride.to}</div>
@@ -1477,7 +1644,7 @@ function App() {
                             </div>
 
                             <div className="ride-detail-item">
-                              <span className="detail-icon">👤</span>
+                              <FaUser className="detail-icon" />
                               <div className="detail-content">
                                 <div className="detail-label">Driver</div>
                                 <div className="detail-value">{ride.driver}</div>
@@ -1485,7 +1652,7 @@ function App() {
                             </div>
 
                             <div className="ride-detail-item">
-                              <span className="detail-icon">🚘</span>
+                              <MdDirectionsCar className="detail-icon" />
                               <div className="detail-content">
                                 <div className="detail-label">Vehicle</div>
                                 <div className="detail-value">{ride.vehicle}</div>
@@ -1493,7 +1660,7 @@ function App() {
                             </div>
 
                             <div className="ride-detail-item">
-                              <span className="detail-icon">💰</span>
+                              <FaRupeeSign className="detail-icon" />
                               <div className="detail-content">
                                 <div className="detail-label">Price per seat</div>
                                 <div className="detail-value">₹{ride.price}</div>
@@ -1521,7 +1688,7 @@ function App() {
               setUser(null);
               setIsRegistering(false);
             }}>
-              <span className="icon">🚪</span>
+              <FaSignOutAlt className="icon" />
               Logout
             </button>
           </div>
@@ -1536,8 +1703,8 @@ function App() {
                     description: '',
                     severity: 'medium'
                   });
-                }}>×</button>
-                <h2>🚩 Report an Issue</h2>
+                }}><FaTimes /></button>
+                <h2><FaFlag className="modal-icon" /> Report an Issue</h2>
                 <div className="issue-details">
                   <div className="ride-summary">
                     <h3>Ride Details</h3>
@@ -1682,7 +1849,17 @@ function App() {
         <header className="app-header">
           <div className="header-content">
             <div className="logo-section">
-              <div className="logo-icon">🚗</div>
+              <div className="logo-icon">
+                <div className="share-ride-icon">
+                  <div className="car-body">
+                    <div className="car-wheels">
+                      <div className="wheel back"></div>
+                      <div className="wheel front"></div>
+                    </div>
+                  </div>
+                  <div className="share-indicator"></div>
+                </div>
+              </div>
               <h1 className="app-title">Share Ride<span className="underline"></span></h1>
               <p className="app-tagline">Your journey, shared with care</p>
             </div>
@@ -1696,22 +1873,26 @@ function App() {
         {isRegistering ? (
           <>
             <RegistrationPage onRegister={handleRegistration} />
-            <p className="toggle-text">
-              Already have an account?{' '}
-              <button className="toggle-button" onClick={() => setIsRegistering(false)}>
-                Login
-              </button>
-            </p>
+            <div className="login-footer">
+              <p className="toggle-text">
+                Already have an account?{' '}
+                <button className="link-button" onClick={() => setIsRegistering(false)}>
+                  <FaLock className="link-icon" /> Login Here
+                </button>
+              </p>
+            </div>
           </>
         ) : (
           <>
             <LoginPage onLogin={setUser} registeredUser={registeredUser} />
-            <p className="toggle-text">
-              Don't have an account?{' '}
-              <button className="toggle-button" onClick={() => setIsRegistering(true)}>
-                Register
-              </button>
-            </p>
+            <div className="login-footer">
+              <p className="toggle-text">
+                Don't have an account?{' '}
+                <button className="link-button" onClick={() => setIsRegistering(true)}>
+                  <FaUserPlus className="link-icon" /> Create Account
+                </button>
+              </p>
+            </div>
           </>
         )}
       </div>
