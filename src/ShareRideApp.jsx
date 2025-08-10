@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
+import { LuArrowRight, LuRepeat2, LuRoute, LuArrowLeftRight } from 'react-icons/lu';
 
 // Mock data for the application
 const MOCK_USERS = [
@@ -426,23 +427,32 @@ function Dashboard({ user, onLogout }) {
             <button 
               className={`trip-type-btn ${tripType === 'one-way' ? 'active' : ''}`}
               onClick={() => handleTripTypeChange('one-way')}
+              type="button"
+              role="tab"
+              aria-selected={tripType === 'one-way'}
             >
-              <span className="trip-icon">➡️</span>
-              One Way
+              <LuArrowRight className="icon" aria-hidden="true" />
+              <span>One Way</span>
             </button>
             <button 
               className={`trip-type-btn ${tripType === 'round-trip' ? 'active' : ''}`}
               onClick={() => handleTripTypeChange('round-trip')}
+              type="button"
+              role="tab"
+              aria-selected={tripType === 'round-trip'}
             >
-              <span className="trip-icon">🔄</span>
-              Round Trip
+              <LuRepeat2 className="icon" aria-hidden="true" />
+              <span>Round Trip</span>
             </button>
             <button 
               className={`trip-type-btn ${tripType === 'multi-city' ? 'active' : ''}`}
               onClick={() => handleTripTypeChange('multi-city')}
+              type="button"
+              role="tab"
+              aria-selected={tripType === 'multi-city'}
             >
-              <span className="trip-icon">�️</span>
-              Multi City
+              <LuRoute className="icon" aria-hidden="true" />
+              <span>Multi City</span>
             </button>
           </div>
 
@@ -462,7 +472,9 @@ function Dashboard({ user, onLogout }) {
                 </div>
                 
                 <div className="swap-button-container">
-                  <button className="swap-btn" onClick={swapLocations} type="button">⇄</button>
+                  <button className="swap-btn" onClick={swapLocations} type="button" aria-label="Swap locations">
+                    <LuArrowLeftRight className="icon" aria-hidden="true" />
+                  </button>
                 </div>
                 
                 <div className="location-input-group">
