@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
-import { LuArrowRight, LuRepeat2, LuRoute, LuArrowLeftRight } from 'react-icons/lu';
+import { LuArrowRight, LuRepeat2, LuRoute, LuArrowLeftRight, LuCalendarDays } from 'react-icons/lu';
 
 // Mock data for the application
 const MOCK_USERS = [
@@ -491,7 +491,10 @@ function Dashboard({ user, onLogout }) {
 
               <div className="date-inputs">
                 <div className="date-input-group">
-                  <label className="date-label">📅 Departure Date</label>
+                  <label className="date-label">
+                    <LuCalendarDays className="icon" aria-hidden="true" />
+                    Departure Date
+                  </label>
                   <input
                     type="date"
                     className="date-input"
@@ -503,7 +506,10 @@ function Dashboard({ user, onLogout }) {
                 
                 {tripType === 'round-trip' && (
                   <div className="date-input-group">
-                    <label className="date-label">🔄 Return Date</label>
+                    <label className="date-label">
+                      <LuRepeat2 className="icon" aria-hidden="true" />
+                      Return Date
+                    </label>
                     <input
                       type="date"
                       className="date-input"
@@ -570,7 +576,10 @@ function Dashboard({ user, onLogout }) {
                     </div>
                     
                     <div className="multi-input-group">
-                      <label>📅 Date</label>
+                      <label className="date-label">
+                        <LuCalendarDays className="icon" aria-hidden="true" />
+                        Date
+                      </label>
                       <input
                         type="date"
                         className="date-input"

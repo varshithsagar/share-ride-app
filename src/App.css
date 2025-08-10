@@ -241,6 +241,7 @@ input[type="text"],
 input[type="password"], 
 input[type="email"],
 input[type="number"],
+input[type="date"],
 input[type="tel"],
 textarea {
   color: #000000 !important;
@@ -250,10 +251,34 @@ input[type="text"]::placeholder,
 input[type="password"]::placeholder,
 input[type="email"]::placeholder,
 input[type="number"]::placeholder,
+input[type="date"]::placeholder,
 input[type="tel"]::placeholder,
 textarea::placeholder {
   color: #333333 !important;
   opacity: 0.7 !important;
+}
+
+/* Enforce black text inside native date inputs across engines */
+input[type="date"] {
+  color: #000000 !important;
+}
+
+/* WebKit date parts (yyyy-mm-dd) */
+input[type="date"]::-webkit-datetime-edit,
+input[type="date"]::-webkit-datetime-edit-fields-wrapper,
+input[type="date"]::-webkit-datetime-edit-text,
+input[type="date"]::-webkit-datetime-edit-month-field,
+input[type="date"]::-webkit-datetime-edit-day-field,
+input[type="date"]::-webkit-datetime-edit-year-field,
+input[type="date"]::-webkit-calendar-picker-indicator {
+  color: #000000 !important;
+}
+
+/* Firefox date input text */
+@-moz-document url-prefix() {
+  input[type="date"] {
+    color: #000000 !important;
+  }
 }
 
 /* Ultra-specific input text enforcement */
