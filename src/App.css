@@ -1826,6 +1826,50 @@ button:active {
   transition: transform 0.1s;
 }
 
+/* Trip type segmented buttons (desktop and mobile) */
+.trip-type-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+@media (min-width: 480px) {
+  .trip-type-selector {
+    flex-direction: row;
+  }
+  .trip-type-btn {
+    flex: 1;
+  }
+}
+
+.trip-type-btn.active {
+  background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+  box-shadow: 0 8px 24px rgba(118, 75, 162, 0.35);
+}
+
+/* Compact swap button */
+.swap-button-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 6px;
+}
+
+.swap-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.swap-btn .icon {
+  font-size: 20px;
+}
+
 /* Professional Error message */
 .error {
   margin-top: -8px;
