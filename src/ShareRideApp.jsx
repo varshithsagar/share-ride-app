@@ -146,6 +146,21 @@ function ProfileOverlay({ user, onClose, onSave, rides = [] }) {
         try { localStorage.setItem(`shareride_avatar_${form.username || user?.username || 'me'}`, avatarUrl); } catch {}
       }
       onSave?.(updated);
+      // Persist profile into shared profiles map for cross-user display (best-effort)
+      try {
+        const mapKey = 'shareride_profiles';
+        const profileMap = JSON.parse(localStorage.getItem(mapKey) || '{}');
+        profileMap[updated.username] = {
+          full_name: updated.full_name,
+            username: updated.username,
+            email: updated.email,
+            phone: updated.phone,
+            gender: updated.gender || '',
+            birth: updated.birth || '',
+            avatar: updated.avatar || ''
+        };
+        localStorage.setItem(mapKey, JSON.stringify(profileMap));
+      } catch {}
       setSaving(false);
     }, 300);
   };
@@ -922,7 +937,7 @@ function RegistrationPage({ onRegister, onToggleLogin }) {
 }
 
 // Dashboard Component
-function Dashboard({ user, onLogout, rides, onOfferCreated, onJoinRide, onUserUpdate }) {
+function Dashboard({ user, onLogout, rides, onOfferCreated, onJoinRide, onLeaveRide, onUserUpdate, joinedVersion, setJoinedVersion, onStartRide, onRemovePassenger }) {
   const [selectedVehicle, setSelectedVehicle] = useState(null);
   const [fromLocation, setFromLocation] = useState('');
   const [toLocation, setToLocation] = useState('');
@@ -946,7 +961,7 @@ function Dashboard({ user, onLogout, rides, onOfferCreated, onJoinRide, onUserUp
   const [showResults, setShowResults] = useState(false);
   const [quickRideMode, setQuickRideMode] = useState(false);
   const [quickRideWindow, setQuickRideWindow] = useState(null); // { start: Date, end: Date }
-  const [joinedVersion, setJoinedVersion] = useState(0);
+  const [passengersModalRide, setPassengersModalRide] = useState(null);
 
   // derive offered rides for user
   const offeredRides = (rides||[]).filter(r => (
@@ -956,9 +971,12 @@ function Dashboard({ user, onLogout, rides, onOfferCreated, onJoinRide, onUserUp
   const joinedRides = (() => {
     try {
       const list = JSON.parse(localStorage.getItem(`shareride_joined_${user?.username || 'me'}`) || '[]');
-      return Array.isArray(list) ? list : [];
+      if (!Array.isArray(list)) return [];
+      // Sort by joinedAt (desc) if present, fallback to id/time
+      return [...list].sort((a,b) => (b.joinedAt||0) - (a.joinedAt||0));
     } catch { return []; }
   })();
+  const joinedRideIds = new Set(joinedRides.map(r => r.id));
 
   const startQuickRide = () => {
     setShowQuickRide(true);
@@ -1409,19 +1427,40 @@ function Dashboard({ user, onLogout, rides, onOfferCreated, onJoinRide, onUserUp
             </div>
           ) : (
             <div className="ride-cards">
-              {searchResults.map(r => (
-                <div className="ride-card" key={r.id}>
-                  <div className="ride-info">
-                    <p><strong>From:</strong> {r.from}</p>
-                    <p><strong>To:</strong> {r.to}</p>
-                    <p><strong>Date:</strong> {r.date} <strong>Time:</strong> {r.time}</p>
-                    {r.vehicle && <p><strong>Vehicle:</strong> {r.vehicle}</p>}
-                    <p><strong>Driver:</strong> {r.driver}</p>
-                    {typeof r.price !== 'undefined' && <p><strong>Price:</strong> ₹{r.price}</p>}
+              {searchResults.map(r => {
+                const passengerCount = Array.isArray(r.passengers) ? r.passengers.length : 0;
+                const capacity = typeof r.seats === 'number' ? r.seats : undefined;
+                const full = capacity !== undefined && passengerCount >= capacity;
+                return (
+                  <div className="ride-card" key={r.id}>
+                    <div className="ride-info">
+                      <p><strong>From:</strong> {r.from}</p>
+                      <p><strong>To:</strong> {r.to}</p>
+                      <p><strong>Date:</strong> {r.date} <strong>Time:</strong> {r.time}</p>
+                      {r.vehicle && <p><strong>Vehicle:</strong> {r.vehicle}</p>}
+                      <p><strong>Driver:</strong> {r.driver}</p>
+                      {capacity !== undefined && (
+                        <p><strong>Seats:</strong> {capacity - passengerCount > 0 ? `${capacity - passengerCount} left / ${capacity}` : `Full (${capacity})`}</p>
+                      )}
+                      {typeof r.price !== 'undefined' && <p><strong>Price:</strong> ₹{r.price}</p>}
+                    </div>
+                    <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
+                      {!joinedRideIds.has(r.id) && !full && (
+                        <button className="join-btn" type="button" onClick={() => onJoinRide?.(r)}>Join</button>
+                      )}
+                      {!joinedRideIds.has(r.id) && full && (
+                        <button className="join-btn" type="button" disabled style={{ background:'#9ca3af', cursor:'not-allowed' }}>Full</button>
+                      )}
+                      {joinedRideIds.has(r.id) && (
+                        <>
+                          <button type="button" className="join-btn" style={{ background:'#6366f1' }} onClick={()=> setPassengersModalRide(r)}>View Passengers</button>
+                          <button type="button" className="join-btn" style={{ background:'#dc2626' }} onClick={()=> onLeaveRide?.(r)}>Leave Ride</button>
+                        </>
+                      )}
+                    </div>
                   </div>
-                  <button className="join-btn" type="button" onClick={() => onJoinRide?.(r)}>Join</button>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
@@ -1437,30 +1476,57 @@ function Dashboard({ user, onLogout, rides, onOfferCreated, onJoinRide, onUserUp
             <h4 style={{ margin: '4px 0 8px', fontSize: 14, textTransform:'uppercase', letterSpacing:'.5px', color:'#374151' }}>Offered</h4>
             {offeredRides.length === 0 ? <div className="history-empty" style={{ padding: 16 }}>No offered rides</div> : (
               <div className="ride-cards" style={{ padding:0 }}>
-                {offeredRides.map(r => (
-                  <div key={r.id} className="ride-card" style={{ margin:0 }}>
-                    <div className="ride-info">
-                      <p><strong>{r.from}</strong> → <strong>{r.to}</strong></p>
-                      <p>{r.date} • {r.time}</p>
-                      {r.vehicle && <p>{r.vehicle}</p>}
+                {offeredRides.map(r => {
+                  const passengerCount = Array.isArray(r.passengers) ? r.passengers.length : 0;
+                  const capacity = typeof r.seats === 'number' ? r.seats : undefined;
+                  return (
+                    <div key={r.id} className="ride-card" style={{ margin:0 }}>
+                      <div className="ride-info">
+                        <p><strong>{r.from}</strong> → <strong>{r.to}</strong></p>
+                        <p>{r.date} • {r.time}</p>
+                        {r.vehicle && <p>{r.vehicle}</p>}
+                        {capacity !== undefined && (
+                          <p><strong>Seats:</strong> {capacity - passengerCount > 0 ? `${capacity - passengerCount} left / ${capacity}` : `Full (${capacity})`}</p>
+                        )}
+                        {r.startedAt && <p style={{ color:'#059669', fontWeight:600 }}>Status: In Progress</p>}
+                      </div>
+                      {user?.username && r.driverUsername === user.username && (
+                        <div style={{ display:'flex', flexDirection:'column', gap:8, width:'100%' }}>
+                          <button type="button" className="join-btn" onClick={()=> setPassengersModalRide(r)}>View Passengers</button>
+                          {!r.startedAt && (
+                            <button type="button" className="join-btn" style={{ background:'linear-gradient(135deg,#10b981,#059669)' }} onClick={()=> onStartRide?.(r)}>Start Ride & WhatsApp</button>
+                          )}
+                        </div>
+                      )}
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
             <h4 style={{ margin: '20px 0 8px', fontSize: 14, textTransform:'uppercase', letterSpacing:'.5px', color:'#374151' }}>Joined</h4>
             {joinedRides.length === 0 ? <div className="history-empty" style={{ padding: 16 }}>No joined rides</div> : (
               <div className="ride-cards" style={{ padding:0 }}>
-                {joinedRides.map((r, idx) => (
-                  <div key={r.id || idx} className="ride-card" style={{ margin:0 }}>
-                    <div className="ride-info">
-                      <p><strong>{r.from}</strong> → <strong>{r.to}</strong></p>
-                      <p>{r.date} • {r.time}</p>
-                      {r.vehicle && <p>{r.vehicle}</p>}
-                      <p style={{ fontSize:12, color:'#6b7280' }}>Driver: {r.driver}</p>
+                {joinedRides.map((r, idx) => {
+                  const passengerCount = Array.isArray(r.passengers) ? r.passengers.length : 0;
+                  const capacity = typeof r.seats === 'number' ? r.seats : undefined;
+                  return (
+                    <div key={r.id || idx} className="ride-card" style={{ margin:0 }}>
+                      <div className="ride-info">
+                        <p><strong>{r.from}</strong> → <strong>{r.to}</strong></p>
+                        <p>{r.date} • {r.time}</p>
+                        {r.vehicle && <p>{r.vehicle}</p>}
+                        <p style={{ fontSize:12, color:'#6b7280' }}>Driver: {r.driver}</p>
+                        {capacity !== undefined && (
+                          <p><strong>Seats:</strong> {capacity - passengerCount > 0 ? `${capacity - passengerCount} left / ${capacity}` : `Full (${capacity})`}</p>
+                        )}
+                      </div>
+                      <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
+                        <button type="button" className="join-btn" style={{ background:'#6366f1' }} onClick={()=> setPassengersModalRide(r)}>View Passengers</button>
+                        <button type="button" className="join-btn" style={{ background:'#dc2626' }} onClick={()=> onLeaveRide?.(r)}>Leave Ride</button>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
@@ -1479,6 +1545,75 @@ function Dashboard({ user, onLogout, rides, onOfferCreated, onJoinRide, onUserUp
       )}
   </>
   )}
+      {passengersModalRide && (
+        <div className="modal-backdrop" role="dialog" aria-modal="true">
+          <div className="modal" style={{ maxWidth:480 }}>
+            <div className="modal-header">
+              <h3 style={{ marginBottom:0 }}>Passengers ({passengersModalRide.passengers?.length||0})</h3>
+            </div>
+            <div className="modal-body" style={{ maxHeight:320, overflowY:'auto' }}>
+              {(!passengersModalRide.passengers || passengersModalRide.passengers.length===0) && (
+                <div style={{ padding:16, fontSize:14, color:'#6b7280' }}>No passengers yet.</div>
+              )}
+              {passengersModalRide.passengers && passengersModalRide.passengers.map(p => {
+                const showPhone = (passengersModalRide.driverUsername && passengersModalRide.driverUsername === user?.username) || p.username === user?.username;
+                // Attempt to enrich with mock profile data (or any future persisted profile info)
+                // Merge from stored profiles map, snapshot on passenger record, or mock fallback
+                let storedProfile = {};
+                try {
+                  const map = JSON.parse(localStorage.getItem('shareride_profiles')||'{}');
+                  storedProfile = map[p.username] || {};
+                } catch {}
+                const profile = { ...(p.profile||{}), ...storedProfile };
+                const fullName = p.name || profile.full_name || p.username;
+                const initials = (fullName||'?').split(/\s+/).map(s=>s[0]).join('').slice(0,2).toUpperCase();
+                const isDriver = passengersModalRide.driverUsername && passengersModalRide.driverUsername === user?.username;
+                return (
+                  <div key={p.username + p.joinedAt} style={{ border:'1px solid #e5e7eb', borderRadius:12, padding:14, marginBottom:14, background:'#f9fafb' }}>
+                    <div style={{ display:'flex', alignItems:'center', gap:12 }}>
+                      {profile.avatar ? (
+                        <div style={{ width:44, height:44, borderRadius:'50%', overflow:'hidden', flexShrink:0 }}>
+                          <img src={profile.avatar} alt={fullName} style={{ width:'100%', height:'100%', objectFit:'cover' }} />
+                        </div>
+                      ) : (
+                        <div style={{ width:44, height:44, borderRadius:'50%', background:'#2563eb', color:'#fff', display:'flex', alignItems:'center', justifyContent:'center', fontWeight:600, fontSize:14, flexShrink:0 }} aria-hidden="true">{initials}</div>
+                      )}
+                      <div style={{ flex:1 }}>
+                        <div style={{ fontWeight:600, fontSize:15, color:'#111827' }}>{fullName}</div>
+                        <div style={{ fontSize:12, color:'#6b7280' }}>@{p.username}</div>
+                      </div>
+                      {isDriver && (
+                        <button type="button" onClick={() => {
+                          if (!window.confirm(`Remove passenger ${fullName}?`)) return;
+                          const updatedRide = onRemovePassenger?.(passengersModalRide.id, p.username);
+                          if (updatedRide) setPassengersModalRide(updatedRide);
+                        }} className="join-btn" style={{ background:'#dc2626', padding:'4px 10px', fontSize:12 }}>
+                          Remove
+                        </button>
+                      )}
+                    </div>
+                    <div style={{ marginTop:10, display:'grid', gap:6 }}>
+                      {profile.email && (<div style={{ fontSize:12, color:'#374151' }}>Email: <strong>{profile.email}</strong></div>)}
+                      {profile.gender && (<div style={{ fontSize:12, color:'#374151' }}>Gender: <strong>{profile.gender}</strong></div>)}
+                      {profile.birth && (<div style={{ fontSize:12, color:'#374151' }}>Birth: <strong>{profile.birth}</strong></div>)}
+                      {showPhone && p.phone && (
+                        <div style={{ fontSize:12, color:'#374151' }}>Phone: <strong>{p.phone}</strong></div>
+                      )}
+                      {!showPhone && p.phone && (
+                        <div style={{ fontSize:12, color:'#374151' }}>Phone: <strong style={{ letterSpacing:'1px' }}>•••• Hidden</strong></div>
+                      )}
+                      <div style={{ fontSize:11, color:'#6b7280' }}>Joined: {new Date(p.joinedAt).toLocaleString()}</div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            <div className="modal-actions">
+              <button className="btn-primary" onClick={()=> setPassengersModalRide(null)}>Close</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -1494,6 +1629,58 @@ function ShareRideApp() {
     } catch {}
     return [...MOCK_RIDES];
   });
+  const [joinedVersion,setJoinedVersion] = useState(0);
+  const [joiningRide, setJoiningRide] = useState(null); // ride object user is attempting to join
+  const [joinForm, setJoinForm] = useState({ phone:'' });
+  const joinPhoneRef = useRef(null);
+  const [joinPhoneError, setJoinPhoneError] = useState('');
+
+  // Auto-focus pickup field when opening join modal
+  useEffect(() => {
+    if (joiningRide) {
+      setTimeout(() => { try { joinPhoneRef.current && joinPhoneRef.current.focus(); } catch {} }, 30);
+    }
+  }, [joiningRide]);
+
+  // Helper to parse a ride's scheduled Date object (local time)
+  const getRideDateTime = (ride) => {
+    try {
+      if (!ride.date) return null;
+      const [year, month, day] = ride.date.split('-').map(n => parseInt(n,10));
+      if (!year || !month || !day) return null;
+      let hours = 0, minutes = 0;
+      if (ride.time) {
+        const parts = ride.time.split(':');
+        hours = parseInt(parts[0],10) || 0;
+        minutes = parseInt(parts[1],10) || 0;
+      }
+      const d = new Date(year, month - 1, day, hours, minutes, 0, 0);
+      return isNaN(d.getTime()) ? null : d;
+    } catch { return null; }
+  };
+
+  // Cleanup expired rides (those strictly before now)
+  const cleanupExpiredRides = React.useCallback(() => {
+    setRides(prev => {
+      const now = new Date();
+      const filtered = prev.filter(r => {
+        const dt = getRideDateTime(r);
+        if (!dt) return true; // keep if cannot parse
+        return dt >= now; // keep only future or current time rides
+      });
+      if (filtered.length !== prev.length) {
+        try { localStorage.setItem('shareride_offered_rides', JSON.stringify(filtered)); } catch {}
+      }
+      return filtered;
+    });
+  }, []);
+
+  // Run cleanup on mount and every 60s
+  useEffect(() => {
+    cleanupExpiredRides();
+    const id = setInterval(cleanupExpiredRides, 60 * 1000);
+    return () => clearInterval(id);
+  }, [cleanupExpiredRides]);
 
   useEffect(() => {
     // Check for saved user
@@ -1532,14 +1719,142 @@ function ShareRideApp() {
   };
 
   const handleJoinRide = (ride) => {
+    // open modal with phone prefill if user has phone
+    setJoinForm({ phone: user?.phone || '' });
+    setJoiningRide(ride);
+  };
+
+  const submitJoinRide = () => {
+    if (!joiningRide) return;
     try {
       const username = user?.username || 'me';
       const key = `shareride_joined_${username}`;
       const list = JSON.parse(localStorage.getItem(key) || '[]');
-      const updated = Array.isArray(list) ? [...list, ride] : [ride];
+      const arr = Array.isArray(list) ? list : [];
+      if (arr.some(r => r.id === joiningRide.id)) {
+        window.__notify && window.__notify('Already joined this ride','info');
+        setJoiningRide(null);
+        return;
+      }
+      // Phone validation (optional field). Accept E.164: + followed by 8-15 digits.
+      // Allow user to type spaces, dashes, parentheses which we strip before validation.
+      const phoneTrim = joinForm.phone.trim();
+      const phoneNormalized = phoneTrim.replace(/[\s\-()]/g,'');
+      if (phoneNormalized) {
+        const phoneOk = /^\+[1-9]\d{7,14}$/.test(phoneNormalized);
+        if (!phoneOk) {
+          setJoinPhoneError('Invalid phone format. Use + followed by 8-15 digits (e.g. +919876543210)');
+          window.__notify && window.__notify('Invalid phone format','error');
+          return;
+        } else {
+          setJoinPhoneError('');
+        }
+      } else {
+        setJoinPhoneError('');
+      }
+      // capacity check
+      const baseRide = rides.find(r => r.id === joiningRide.id);
+      const passengerCount = baseRide && Array.isArray(baseRide.passengers) ? baseRide.passengers.length : 0;
+      const capacity = baseRide && typeof baseRide.seats === 'number' ? baseRide.seats : undefined;
+      if (capacity !== undefined && passengerCount >= capacity) {
+        window.__notify && window.__notify('Ride is full','error');
+        setJoiningRide(null);
+        return;
+      }
+      const joinedAt = Date.now();
+      const enriched = { ...joiningRide, joinedAt };
+      const updated = [enriched, ...arr];
       localStorage.setItem(key, JSON.stringify(updated));
-    } catch {}
-    window.__notify && window.__notify('Ride joined','success');
+      setRides(prev => {
+        const next = prev.map(r => {
+          if (r.id === joiningRide.id) {
+            const passengers = Array.isArray(r.passengers) ? [...r.passengers] : [];
+            // snapshot basic profile fields for later viewer display
+            let profileSnapshot = null;
+            try {
+              profileSnapshot = {
+                full_name: user?.full_name,
+                email: user?.email,
+                phone: (joinForm.phone.trim() || user?.phone || ''),
+                gender: user?.gender || '',
+                birth: user?.birth || '',
+                avatar: user?.avatar || localStorage.getItem(`shareride_avatar_${username}`) || ''
+              };
+            } catch {}
+            passengers.push({ username, name: user?.full_name, phone: joinForm.phone.trim(), joinedAt, profile: profileSnapshot });
+            return { ...r, passengers };
+          }
+          return r;
+        });
+        try { localStorage.setItem('shareride_offered_rides', JSON.stringify(next)); } catch {}
+        return next;
+      });
+      window.__notify && window.__notify(`Successfully joined ride ${joiningRide.from} → ${joiningRide.to}`,'success');
+      setJoiningRide(null);
+      setJoinedVersion(v=>v+1);
+    } catch {
+      window.__notify && window.__notify('Could not join ride','error');
+      setJoiningRide(null);
+    }
+  };
+
+  const handleLeaveRide = (ride) => {
+    try {
+      const username = user?.username || 'me';
+      const key = `shareride_joined_${username}`;
+      const list = JSON.parse(localStorage.getItem(key) || '[]');
+      const arr = Array.isArray(list) ? list : [];
+      if (!arr.some(r => r.id === ride.id)) { window.__notify && window.__notify('Not in this ride','info'); return; }
+      const updatedJoined = arr.filter(r => r.id !== ride.id);
+      localStorage.setItem(key, JSON.stringify(updatedJoined));
+      // Remove passenger from offered ride passenger list
+      setRides(prev => {
+        const next = prev.map(r => {
+          if (r.id === ride.id && Array.isArray(r.passengers)) {
+            return { ...r, passengers: r.passengers.filter(p => p.username !== username) };
+          }
+          return r;
+        });
+        try { localStorage.setItem('shareride_offered_rides', JSON.stringify(next)); } catch {}
+        return next;
+      });
+      window.__notify && window.__notify('Left ride','success');
+      setJoinedVersion(v=>v+1);
+    } catch {
+      window.__notify && window.__notify('Could not leave ride','error');
+    }
+  };
+
+  // Start ride: mark started and open WhatsApp with passenger list
+  const handleStartRide = (ride) => {
+    setRides(prev => {
+      const next = prev.map(r => r.id === ride.id ? { ...r, startedAt: Date.now() } : r);
+      try { localStorage.setItem('shareride_offered_rides', JSON.stringify(next)); } catch {}
+      return next;
+    });
+    const passengers = Array.isArray(ride.passengers) ? ride.passengers : [];
+    if (!passengers.length) {
+      window.__notify && window.__notify('Ride started (no passengers yet)','success');
+      return;
+    }
+    // New multiline formatted message for WhatsApp
+    const blocks = passengers.map((p,i) => {
+      const nameLine = `${i+1}. ${(p.name||p.username||'').toUpperCase()}`;
+      const lines = [nameLine];
+      if (p.pickup) lines.push(`Pickup: ${p.pickup}`);
+      if (p.drop) lines.push(`Drop: ${p.drop}`);
+      return lines.join('\n');
+    }).join('\n\n');
+    const message = `Ride starting now!\nRoute: ${ride.from} -> ${ride.to}\nDeparture: ${ride.date} ${ride.time}\nPassengers:\n${blocks}`;
+    const text = encodeURIComponent(message);
+    // If only one passenger with phone, direct send, else use share link (multi-select manual send)
+    let url = `https://wa.me/?text=${text}`;
+    if (passengers.length === 1 && passengers[0].phone) {
+      const phoneClean = passengers[0].phone.replace(/[^+\d]/g,'');
+      url = `https://wa.me/${phoneClean.replace(/^\+/,'')}?text=${text}`;
+    }
+    window.open(url, '_blank');
+    window.__notify && window.__notify('WhatsApp message prepared','success');
   };
 
   const handleUserUpdate = (updatedUser) => {
@@ -1574,11 +1889,70 @@ function ShareRideApp() {
       <Dashboard
         user={user}
         onLogout={handleLogout}
-  rides={rides}
-  onOfferCreated={handleOfferCreated}
-  onJoinRide={handleJoinRide}
-  onUserUpdate={handleUserUpdate}
+        rides={rides}
+        onOfferCreated={handleOfferCreated}
+        onJoinRide={handleJoinRide}
+        onLeaveRide={handleLeaveRide}
+        onUserUpdate={handleUserUpdate}
+        joinedVersion={joinedVersion}
+        setJoinedVersion={setJoinedVersion}
+        onStartRide={handleStartRide}
+        onRemovePassenger={(rideId, passengerUsername) => {
+          let updatedRef = null;
+          setRides(prev => {
+            const next = prev.map(r => {
+              if (r.id === rideId && Array.isArray(r.passengers)) {
+                const filtered = r.passengers.filter(p => p.username !== passengerUsername);
+                const updated = { ...r, passengers: filtered };
+                if (!updatedRef) updatedRef = updated;
+                return updated;
+              }
+              return r;
+            });
+            try { localStorage.setItem('shareride_offered_rides', JSON.stringify(next)); } catch {}
+            return next;
+          });
+          // Remove passenger's joined record for that user if reachable (best-effort)
+          try {
+            const key = `shareride_joined_${passengerUsername}`;
+            const list = JSON.parse(localStorage.getItem(key)||'[]');
+            if (Array.isArray(list) && list.some(r => r.id === rideId)) {
+              const filtered = list.filter(r => r.id !== rideId);
+              localStorage.setItem(key, JSON.stringify(filtered));
+            }
+          } catch {}
+          window.__notify && window.__notify('Passenger removed','success');
+          return updatedRef;
+        }}
       />
+      {joiningRide && (
+        <div className="modal-backdrop" role="dialog" aria-modal="true">
+          <div className="modal" style={{ maxWidth:500 }}>
+            <div className="modal-header">
+              <h3 style={{ marginBottom:0 }}>Join Ride</h3>
+            </div>
+            <form onSubmit={(e)=>{ e.preventDefault(); submitJoinRide(); }}>
+              <div className="modal-body" style={{ display:'grid', gap:14 }}>
+                <div style={{ fontSize:13, background:'#f3f4f6', padding:10, borderRadius:8 }}>
+                  <strong>Route:</strong> {joiningRide.from} → {joiningRide.to}<br />
+                  <strong>Schedule:</strong> {joiningRide.date} • {joiningRide.time}
+                </div>
+                <div className="location-input-group">
+                  <label className="location-label">WhatsApp Phone <span style={{ fontWeight:400, fontSize:11, color:'#6b7280' }}>(optional)</span></label>
+                  <input ref={joinPhoneRef} className="location-input" style={joinPhoneError?{borderColor:'#dc2626'}:undefined} placeholder="e.g. +919876543210" value={joinForm.phone} onChange={(e)=> { const v=e.target.value; setJoinForm(f=>({...f,phone:v})); const cleaned = v.trim().replace(/[\s\-()]/g,''); if(!cleaned){ setJoinPhoneError(''); } else if(!/^\+[1-9]\d{7,14}$/.test(cleaned)) { setJoinPhoneError('Invalid format'); } else { setJoinPhoneError(''); } }} />
+                  <div style={{ fontSize:11, color: joinPhoneError? '#dc2626':'#6b7280', marginTop:4 }}>
+                    {joinPhoneError || 'Only driver (and you) can see this number.'}
+                  </div>
+                </div>
+              </div>
+              <div className="modal-actions">
+                <button type="button" className="btn-outline" onClick={()=> setJoiningRide(null)}>Cancel</button>
+                <button type="submit" className="btn-primary" disabled={!!joinPhoneError}>Confirm Join</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
