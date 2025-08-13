@@ -361,6 +361,7 @@ function OfferRideForm({ onBack, onOfferCreated, currentUser }) {
     const ride = {
       id: Date.now(),
       driver: currentUser?.full_name || 'You',
+      driverUsername: currentUser?.username || 'you',
       from,
       to,
       date,
@@ -947,7 +948,9 @@ function Dashboard({ user, onLogout, rides, onOfferCreated, onJoinRide, onUserUp
   const [joinedVersion, setJoinedVersion] = useState(0);
 
   // derive offered rides for user
-  const offeredRides = (rides||[]).filter(r => user?.full_name && r.driver === user.full_name);
+  const offeredRides = (rides||[]).filter(r => (
+    (user?.full_name && r.driver === user.full_name) || (user?.username && r.driverUsername === user.username)
+  ));
   // derive joined rides from localStorage
   const joinedRides = (() => {
     try {
@@ -1483,7 +1486,13 @@ function Dashboard({ user, onLogout, rides, onOfferCreated, onJoinRide, onUserUp
 function ShareRideApp() {
   const [user, setUser] = useState(null);
   const [isRegistering, setIsRegistering] = useState(false);
-  const [rides, setRides] = useState([...MOCK_RIDES]);
+  const [rides, setRides] = useState(() => {
+    try {
+      const stored = JSON.parse(localStorage.getItem('shareride_offered_rides') || '[]');
+      if (Array.isArray(stored) && stored.length) return stored;
+    } catch {}
+    return [...MOCK_RIDES];
+  });
 
   useEffect(() => {
     // Check for saved user
@@ -1514,7 +1523,11 @@ function ShareRideApp() {
   };
 
   const handleOfferCreated = (ride) => {
-    setRides((prev) => [ride, ...prev]);
+    setRides((prev) => {
+      const updated = [ride, ...prev];
+      try { localStorage.setItem('shareride_offered_rides', JSON.stringify(updated)); } catch {}
+      return updated;
+    });
   };
 
   const handleJoinRide = (ride) => {
