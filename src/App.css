@@ -969,7 +969,7 @@ body::before {
   }
   
   .vehicle-icon {
-    font-size: 22px;
+    font-size: 24px;
     min-width: 28px;
   }
   
@@ -984,23 +984,219 @@ body::before {
   }
   
   .vehicle-details {
-    font-size: 13px;
-    opacity: 0.8;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex-wrap: wrap;
+  font-size: 13px;
+  opacity: 0.9;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
   }
   
   .vehicle-feature {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(102, 126, 234, 0.1);
+    padding: 4px 8px;
+    border-radius: 10px;
+    font-size: 12px;
+    color: #1f2937;
+  }
+
+  .vehicle-feature .feature-icon {
+    font-size: 14px;
+    color: #667eea;
+  }
+
+  /* Feature-specific icon colors */
+  .vehicle-feature .feature-icon.seats { color: #7c3aed; }
+  .vehicle-feature .feature-icon.bags { color: #ec4899; }
+  .vehicle-feature .feature-icon.ac { color: #06b6d4; }
+
+  /* Vehicle icon tints per type (applies when we add type-specific class) */
+  .vehicle-card[data-vehicle-id="bike"] .vehicle-icon { color: #0ea5e9; }
+  .vehicle-card[data-vehicle-id="auto"] .vehicle-icon { color: #10b981; }
+  .vehicle-card[data-vehicle-id="car"] .vehicle-icon { color: #f59e0b; }
+
+  /* Professional vehicle grid/cards for desktop and mobile */
+  .vehicle-selection { margin-top: 8px; }
+
+  .vehicle-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  @media (min-width: 480px) {
+    .vehicle-grid { grid-template-columns: 1fr; }
+  }
+
+  @media (min-width: 768px) {
+    .vehicle-grid { grid-template-columns: 1fr; }
+  }
+
+  .vehicle-card {
+    background: #ffffff;
+    border: 2px solid #e5e7eb;
+    border-radius: 16px;
+    padding: 14px 16px;
+    transition: all 0.25s ease;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  }
+
+  .vehicle-card:hover {
+    border-color: #667eea;
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.15);
+    transform: translateY(-1px);
+  }
+
+  .vehicle-card.selected {
+    border-color: #667eea;
+    background: linear-gradient(135deg, #f8f9ff 0%, #ffffff 100%);
+    box-shadow: 0 8px 24px rgba(102, 126, 234, 0.2);
+  }
+
+  .vehicle-card-top {
     display: flex;
     align-items: center;
-    gap: 4px;
-    background: rgba(255, 255, 255, 0.2);
-    padding: 2px 6px;
-    border-radius: 8px;
-    font-size: 11px;
+    gap: 10px;
+    margin-bottom: 8px;
   }
+
+  .vehicle-name { font-size: 16px; font-weight: 700; color: #111827; }
+
+  /* price row removed per request */
+
+  .vehicle-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+  }
+
+  .btn-choose {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #fff;
+    border: none;
+    padding: 10px 14px;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 14px;
+    flex: 1;
+  }
+
+  .btn-choose:hover { transform: translateY(-1px); }
+
+  .btn-outline {
+    background: #ffffff;
+    color: #4b5563;
+    border: 2px solid #e5e7eb;
+    padding: 10px 14px;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 14px;
+    flex: 1;
+  }
+
+  .btn-outline:hover { border-color: #667eea; color: #1f2937; }
+
+  /* Bike subtype selection */
+  .btn-back {
+    background: #ffffff;
+    color: #4b5563;
+    border: 2px solid #e5e7eb;
+    padding: 10px 14px;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 14px;
+    width: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+
+  .bike-title {
+    text-align: center;
+    font-weight: 800;
+    color: #111827;
+    margin: 8px 0 14px;
+  }
+
+  .subtype-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .subtype-card {
+    background: #ffffff;
+    border: 2px solid #e5e7eb;
+    border-radius: 16px;
+    padding: 14px 16px;
+    transition: all 0.25s ease;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  }
+
+  .subtype-card:hover { border-color: #667eea; box-shadow: 0 6px 20px rgba(102,126,234,0.15); transform: translateY(-1px); }
+
+  .subtype-head { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+  .subtype-name { font-weight: 700; color: #111827; }
+/* Quick actions modern layout */
+.quick-actions {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  margin: 16px 0 24px;
+}
+
+@media (min-width: 520px) {
+  .quick-actions { grid-template-columns: repeat(3, 1fr); }
+}
+
+.quick-action-card {
+  background: #ffffff;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 16px;
+  padding: 14px;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+
+.quick-action-card .quick-action-icon {
+  font-size: 22px;
+  color: #6b46c1;
+}
+
+.quick-action-card h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 800;
+  color: #111827;
+}
+
+.quick-action-card p {
+  margin: 0;
+  color: #4b5563;
+  font-size: 14px;
+}
+
+.qa-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.qa-btn-icon { font-size: 18px; }
   
   .search-ride-btn {
     width: 100%;
@@ -2564,6 +2760,83 @@ button:active {
   transform: scale(1.2);
 }
 
+/* Emergency Quick Ride modal */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1200;
+  padding: 16px;
+}
+
+.modal {
+  width: 100%;
+  max-width: 420px;
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+  overflow: hidden;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  border-bottom: 1px solid #eef2f7;
+}
+
+.modal-header h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 800;
+  color: #111827;
+}
+
+.modal-body { padding: 16px; }
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  padding: 14px 16px;
+  border-top: 1px solid #eef2f7;
+}
+
+/* Chips */
+.chip {
+  border: 2px solid #e5e7eb;
+  background: #ffffff;
+  color: #374151;
+  border-radius: 999px;
+  padding: 8px 14px;
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.chip.active {
+  border-color: transparent;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #ffffff;
+}
+
+/* Primary button utility (used in Quick Ride and forms) */
+.btn-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #ffffff;
+  border: none;
+  border-radius: 10px;
+  padding: 12px 16px;
+  font-weight: 800;
+}
+
+.btn-primary[disabled] {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
 /* Responsive Design for Menu */
 @media (min-width: 480px) {
   .dashboard-menu {
@@ -3808,12 +4081,12 @@ input[type="number"]:focus {
     rgba(70, 70, 135, 0.98) 100%);
   display: flex;
   justify-content: center;
-  align-items: center;
+  align-items: flex-start;
   z-index: 1000;
   backdrop-filter: blur(25px);
   animation: profileEntrance 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  padding: 15px;
-  overflow-y: auto;
+  padding: 12px 15px 15px;
+  overflow-y: hidden;
 }
 
 @keyframes profileEntrance {
@@ -4830,6 +5103,130 @@ input[type="number"]:focus {
   border-radius: 4px;
 }
 
+/* New compact, fixed profile sheet layout */
+.profile-sheet {
+  max-width: 520px;
+  width: 100%;
+  margin: 10px auto 0;
+  background: #ffffff;
+  border-radius: 20px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+  overflow: hidden;
+}
+
+/* When opened as overlay, stretch to full screen for the requested UX */
+.profile-overlay .profile-sheet {
+  max-width: none !important;
+  width: 100% !important;
+  height: 100vh !important;
+  max-height: 100vh !important;
+  margin: 0 !important;
+  border-radius: 0 !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.sheet-top {
+  position: relative;
+  padding: 16px 16px 56px;
+}
+
+.back-btn {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  width: 40px; height: 40px;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  display: inline-flex;
+  align-items: center; justify-content: center;
+  color: #111827;
+}
+
+/* red close variant for the profile close button */
+.close-btn-red {
+  border-color: #fecaca !important;
+  background: #fff1f2 !important;
+  color: #b91c1c !important;
+}
+.close-btn-red:hover { background: #ffe4e6 !important; }
+
+.profile-hero {
+  height: 90px;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  border-radius: 12px;
+}
+
+.profile-avatar-lg {
+  position: absolute;
+  left: 50%;
+  bottom: -36px;
+  transform: translateX(-50%);
+  width: 88px; height: 88px;
+  border-radius: 50%;
+  background: #111827;
+  color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 800; font-size: 28px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+  border: 3px solid #fff;
+}
+
+.profile-avatar-lg .avatar-badge {
+  position: absolute;
+  right: -2px; bottom: -2px;
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  background: #fff;
+  color: #111827;
+  border: 1px solid #e5e7eb;
+  display: inline-flex; align-items: center; justify-content: center;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+}
+
+.profile-title {
+  margin: 48px 0 0;
+  text-align: center;
+  font-size: 18px;
+  font-weight: 800;
+  color: #111827;
+}
+
+.sheet-form { padding: 14px 16px 16px; }
+.sheet-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+@media (max-width: 460px) {
+  .sheet-grid { grid-template-columns: 1fr; }
+}
+
+.sheet-actions {
+  display: flex; gap: 10px; justify-content: flex-end; margin-top: 8px;
+}
+
+.sheet-divider {
+  height: 1px; background: #e5e7eb; margin: 14px 0;
+}
+
+.change-pass-btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: #111827; color: #fff;
+  border: none; border-radius: 10px; padding: 10px 12px; font-weight: 700;
+}
+
+.pw-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 10px;
+}
+
+@media (max-width: 460px) {
+  .pw-grid { grid-template-columns: 1fr; }
+}
+
 .close-btn {
   position: absolute;
   top: 15px;
@@ -4966,6 +5363,12 @@ input[type="number"]:focus {
 /* Specific styling for pickup location and destination inputs in profile */
 .profile-form .location-input {
   color: #000000 !important; /* Pure black text */
+.profile-avatar-lg img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
   font-weight: 500;
   background: #ffffff;
   border: 2px solid #e1e8ed;
@@ -6980,6 +7383,176 @@ input[type="number"]:focus {
 }
 
 /* End of Revolutionary Profile Page Styling */
+
+/* Profile Professional View — Simplified, accessible overrides */
+.profile-overlay {
+  background: rgba(17, 24, 39, 0.72) !important; /* subtle dark */
+  backdrop-filter: blur(6px) !important;
+  animation: none !important;
+  padding: 0 !important;
+  /* Prevent any overlay scrolling */
+  overflow: hidden !important;
+  align-items: flex-start !important; /* stick to top */
+  justify-content: center !important; /* center horizontally */
+  min-height: 100vh !important;
+  overscroll-behavior: contain !important;
+}
+
+.profile-container {
+  background: #ffffff !important;
+  color: #111827 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  max-width: none !important;
+  width: 100% !important;
+  height: 100vh !important;
+  max-height: 100vh !important;
+  overflow: hidden !important;
+  margin: 0 !important;
+}
+
+/* Ensure the compact profile sheet uses scroll when content is long */
+.profile-sheet {
+  /* Keep the profile sheet static without internal scroll */
+  max-height: none !important;
+  overflow: hidden !important;
+}
+
+.profile-header {
+  background: linear-gradient(180deg, #f9fafb 0%, #f3f4f6 100%) !important;
+  padding: 24px !important;
+  border-radius: 16px 16px 0 0 !important;
+  text-align: left !important;
+}
+
+.profile-avatar {
+  width: 80px !important;
+  height: 80px !important;
+  font-size: 1.75rem !important;
+  background: #111827 !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25) !important;
+  animation: none !important;
+  transform: none !important;
+}
+
+.profile-avatar:hover { transform: none !important; }
+
+.profile-name {
+  font-size: 1.5rem !important;
+  font-weight: 700 !important;
+  color: #111827 !important;
+  text-shadow: none !important;
+  -webkit-text-fill-color: initial !important;
+  background: none !important;
+  animation: none !important;
+}
+
+.profile-role {
+  font-size: 0.875rem !important;
+  color: #6b7280 !important;
+  font-weight: 500 !important;
+  text-transform: none !important;
+  letter-spacing: 0 !important;
+  animation: none !important;
+}
+
+.profile-badge {
+  background: #eef2ff !important;
+  color: #4338ca !important;
+  border: none !important;
+  padding: 4px 10px !important;
+  border-radius: 999px !important;
+  font-size: 0.75rem !important;
+  text-transform: none !important;
+}
+
+.profile-tab-content {
+  padding: 24px !important;
+  min-height: unset !important;
+  animation: none !important;
+}
+
+.profile-info-grid {
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)) !important;
+  gap: 16px !important;
+}
+
+.info-card {
+  background: #ffffff !important;
+  border: 1px solid #e5e7eb !important;
+  box-shadow: none !important;
+  padding: 16px !important;
+  border-radius: 12px !important;
+  transition: none !important;
+}
+.info-card:hover { transform: none !important; box-shadow: none !important; }
+
+.info-label {
+  color: #6b7280 !important;
+  font-size: 0.75rem !important;
+  margin-bottom: 6px !important;
+  text-transform: none !important;
+  letter-spacing: 0 !important;
+}
+
+.info-value {
+  color: #111827 !important;
+  font-size: 1rem !important;
+  font-weight: 600 !important;
+  text-shadow: none !important;
+  font-style: normal !important;
+  text-align: left !important;
+}
+
+.profile-actions {
+  border-top: 1px solid #e5e7eb !important;
+  margin-top: 8px !important;
+  padding-top: 16px !important;
+  gap: 10px !important;
+}
+
+.edit-profile-btn,
+.save-profile-btn,
+.cancel-profile-btn {
+  border-radius: 8px !important;
+  font-weight: 600 !important;
+}
+
+.edit-profile-btn,
+.cancel-profile-btn {
+  background: #ffffff !important;
+  color: #111827 !important;
+  border: 1px solid #d1d5db !important;
+  padding: 8px 12px !important;
+}
+.edit-profile-btn:hover,
+.cancel-profile-btn:hover { border-color: #9ca3af !important; }
+
+.save-profile-btn {
+  background: #111827 !important;
+  color: #ffffff !important;
+  border: 1px solid #111827 !important;
+  padding: 10px 16px !important;
+}
+.save-profile-btn:disabled { opacity: 0.7 !important; }
+
+.profile-close-btn {
+  background: transparent !important;
+  color: #6b7280 !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+.profile-close-btn:hover { color: #111827 !important; }
+
+@media (max-width: 480px) {
+  .profile-header { padding: 16px !important; }
+  .profile-tab-content { padding: 16px !important; }
+  .profile-avatar { width: 64px !important; height: 64px !important; font-size: 1.25rem !important; }
+  .profile-container { height: 520px !important; }
+}
+
+/* lock page scroll when modal open */
+html.no-scroll, body.no-scroll { overflow: hidden !important; height: 100%; overscroll-behavior: none; }
 
 .find-ride-form .pickup-input-group .pickup-icon {
   position: absolute;
