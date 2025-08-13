@@ -1509,6 +1509,9 @@ function Dashboard({ user, onLogout, rides, onOfferCreated, onJoinRide, onLeaveR
                 {joinedRides.map((r, idx) => {
                   const passengerCount = Array.isArray(r.passengers) ? r.passengers.length : 0;
                   const capacity = typeof r.seats === 'number' ? r.seats : undefined;
+                  // Use authoritative ride (may have more recent passengers) if available
+                  const liveRide = (rides||[]).find(x => x.id === r.id) || r;
+                  const livePassengers = Array.isArray(liveRide.passengers) ? liveRide.passengers : [];
                   return (
                     <div key={r.id || idx} className="ride-card" style={{ margin:0 }}>
                       <div className="ride-info">
@@ -1518,6 +1521,18 @@ function Dashboard({ user, onLogout, rides, onOfferCreated, onJoinRide, onLeaveR
                         <p style={{ fontSize:12, color:'#6b7280' }}>Driver: {r.driver}</p>
                         {capacity !== undefined && (
                           <p><strong>Seats:</strong> {capacity - passengerCount > 0 ? `${capacity - passengerCount} left / ${capacity}` : `Full (${capacity})`}</p>
+                        )}
+                        {livePassengers.length > 0 && (
+                          <div style={{ marginTop:6 }}>
+                            <div style={{ fontSize:12, fontWeight:600, color:'#111827', marginBottom:4 }}>Passengers:</div>
+                            <div style={{ display:'flex', flexWrap:'wrap', gap:6 }}>
+                              {livePassengers.map(p => (
+                                <span key={p.username + (p.joinedAt||'')} style={{ background:'#eef2ff', color:'#3730a3', padding:'4px 8px', borderRadius:20, fontSize:11, fontWeight:500 }}>
+                                  {(p.name || p.username || '').split(' ').slice(0,2).join(' ')}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
                         )}
                       </div>
                       <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
