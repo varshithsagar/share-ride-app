@@ -17,14 +17,14 @@ export default defineConfig({
     },
   },
   server: {
-    // Bind explicitly to IPv4 loopback to avoid localhost/IPv6 edge cases
-    host: '127.0.0.1',
+    // Expose on LAN for testing from other devices
+    host: '0.0.0.0',
     // Use a stable dev port; combined with strictPort this will not auto-switch
     port: 5175,
     strictPort: true
   },
   preview: {
-    host: '127.0.0.1',
+    host: '0.0.0.0',
     port: 10000,
     strictPort: true
   }

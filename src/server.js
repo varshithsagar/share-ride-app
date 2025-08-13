@@ -29,7 +29,7 @@ app.use((req, res, next) => {
 });
 
 // In-memory rides store (persisted to JSON file)
-const DATA_FILE = path.resolve(__dirname, '../rides-data.json');
+const DATA_FILE = process.env.RIDES_FILE || path.resolve(__dirname, '../rides-data.json');
 let rides = [];
 try {
 	if (fs.existsSync(DATA_FILE)) {
