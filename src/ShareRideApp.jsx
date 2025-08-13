@@ -1643,16 +1643,32 @@ function ShareRideApp() {
   const [isRegistering, setIsRegistering] = useState(false);
   const [rides, setRides] = useState([]);
   const [apiReady,setApiReady] = useState(false);
+  const apiBase = '';
 
   // Initial fetch from API (fallback to local mock if fails)
   useEffect(() => {
+    const syncLocalRidesToAPI = async (serverRides=[]) => {
+      // Push any locally stored rides not present on server (best-effort)
+      try {
+        const local = JSON.parse(localStorage.getItem('shareride_offered_rides') || '[]');
+        if (!Array.isArray(local) || !local.length) return;
+        const serverIds = new Set((serverRides||[]).map(r => r.id));
+        const missing = local.filter(r => !serverIds.has(r.id));
+        for (const ride of missing) {
+          try { await fetch(`${apiBase}/api/rides`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(ride) }); } catch {}
+        }
+      } catch {}
+    };
+
     const load = async () => {
       try {
-        const res = await fetch('/api/rides');
+        const res = await fetch(`${apiBase}/api/rides`);
         if(!res.ok) throw new Error('net');
         const data = await res.json();
         if (Array.isArray(data.rides)) setRides(data.rides);
         setApiReady(true);
+        // Try to sync any local-only rides once API is reachable
+        await syncLocalRidesToAPI(data.rides || []);
       } catch {
         // fallback to local storage / mock
         try {
@@ -1748,15 +1764,16 @@ function ShareRideApp() {
   };
 
   const handleOfferCreated = async (ride) => {
-    if (apiReady) {
-      try {
-        const res = await fetch('/api/rides', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(ride) });
+    // Try API first
+    try {
+      const res = await fetch(`${apiBase}/api/rides`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(ride) });
+      if (res.ok) {
         const data = await res.json();
-        if (Array.isArray(data.rides)) setRides(data.rides); else setRides(r => [ride, ...r]);
-      } catch {
-        setRides(r => { const updated=[ride,...r]; try{localStorage.setItem('shareride_offered_rides', JSON.stringify(updated));}catch{} return updated; });
+        if (Array.isArray(data.rides)) { setRides(data.rides); return; }
       }
-    } else {
+      throw new Error('api fail');
+    } catch {
+      // Fallback to local store
       setRides(r => { const updated=[ride,...r]; try{localStorage.setItem('shareride_offered_rides', JSON.stringify(updated));}catch{} return updated; });
     }
   };
@@ -1838,15 +1855,11 @@ function ShareRideApp() {
         try { localStorage.setItem('shareride_offered_rides', JSON.stringify(next)); } catch {}
         return next;
       });
-      if (apiReady) {
-        try {
-          const res = await fetch(`/api/rides/${joiningRide.id}/join`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ username, name: user?.full_name, phone: fullPhone }) });
-          const data = await res.json();
-          if (Array.isArray(data.rides)) setRides(data.rides); else applyLocal();
-        } catch { applyLocal(); }
-      } else {
-        applyLocal();
-      }
+      try {
+        const res = await fetch(`${apiBase}/api/rides/${joiningRide.id}/join`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ username, name: user?.full_name, phone: fullPhone }) });
+        const data = await res.json();
+        if (res.ok && Array.isArray(data.rides)) setRides(data.rides); else applyLocal();
+      } catch { applyLocal(); }
       window.__notify && window.__notify(`Successfully joined ride ${joiningRide.from} → ${joiningRide.to}`,'success');
       setJoiningRide(null);
       setJoinedVersion(v=>v+1);
@@ -1876,12 +1889,10 @@ function ShareRideApp() {
         try { localStorage.setItem('shareride_offered_rides', JSON.stringify(next)); } catch {}
         return next;
       });
-      if (apiReady) {
-        fetch(`/api/rides/${ride.id}/leave`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ username }) })
-          .then(r=>r.json())
-          .then(data => { if (Array.isArray(data.rides)) setRides(data.rides); else applyLocal(); })
-          .catch(()=> applyLocal());
-      } else { applyLocal(); }
+      fetch(`${apiBase}/api/rides/${ride.id}/leave`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ username }) })
+        .then(r=>r.json().then(data => ({ ok:r.ok, data })))
+        .then(({ok,data}) => { if (ok && Array.isArray(data.rides)) setRides(data.rides); else applyLocal(); })
+        .catch(()=> applyLocal());
       window.__notify && window.__notify('Left ride','success');
       setJoinedVersion(v=>v+1);
     } catch {
@@ -1896,9 +1907,7 @@ function ShareRideApp() {
       try { localStorage.setItem('shareride_offered_rides', JSON.stringify(next)); } catch {}
       return next;
     });
-    if (apiReady) {
-      fetch(`/api/rides/${ride.id}/start`, { method:'POST' });
-    }
+    fetch(`${apiBase}/api/rides/${ride.id}/start`, { method:'POST' }).catch(()=>{});
     const passengers = Array.isArray(ride.passengers) ? ride.passengers : [];
     if (!passengers.length) {
       window.__notify && window.__notify('Ride started (no passengers yet)','success');
