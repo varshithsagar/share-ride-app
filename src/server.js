@@ -10,8 +10,9 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 
-// Config
-const HOST = process.env.HOST || '127.0.0.1';
+// Config (Render/Cloud friendly)
+// On platforms like Render, only PORT is provided and binding 0.0.0.0 is required.
+const HOST = process.env.HOST || '0.0.0.0';
 const PORT = Number(process.env.PORT || 10000);
 const DIST_DIR = path.resolve(__dirname, '../dist');
 
@@ -42,5 +43,5 @@ app.get(/.*/, (req, res) => {
 });
 
 app.listen(PORT, HOST, () => {
-	console.log(`Share Ride server running at http://${HOST}:${PORT}`);
+	console.log(`Share Ride server listening on ${HOST}:${PORT}`);
 });
