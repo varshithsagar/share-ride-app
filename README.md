@@ -28,6 +28,31 @@ If you are developing a production application, we recommend using TypeScript wi
 
 The server uses `PORT` provided by Render and serves the built SPA from `dist/` with an SPA fallback. After build completes your live URL will be shown in the dashboard.
 
+## Deploying on GitHub Pages (Static Only)
+If you just need the static front‑end (no Express server features) you can publish the `dist/` folder.
+
+1. Install the pages helper: `npm i -D gh-pages`
+2. In `vite.config.js` set `base: '/<repo-name>/'` (example: `/share-ride-app/`) for correct asset paths.
+3. Add scripts to `package.json`:
+```
+"predeploy": "npm run build",
+"deploy": "gh-pages -d dist"
+```
+4. Run: `npm run deploy`
+5. Enable GitHub Pages (Settings → Pages → Deploy from branch → gh-pages).
+
+Note: Dynamic server code (Express, password overrides) won’t run—only the built static assets.
+
+## Deploying on Netlify (Alternate)
+1. Create a new site from Git repo.
+2. Build command: `npm run build`
+3. Publish directory: `dist`
+4. Add a redirect file for SPA fallback: create `public/_redirects` containing:
+```
+/* /index.html 200
+```
+Netlify will auto-detect and deploy.
+
 ### Local Production Preview
 ```
 npm run build
