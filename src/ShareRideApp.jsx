@@ -937,7 +937,7 @@ function RegistrationPage({ onRegister, onToggleLogin }) {
 }
 
 // Dashboard Component
-function Dashboard({ user, onLogout, rides, onOfferCreated, onJoinRide, onLeaveRide, onUserUpdate, joinedVersion, setJoinedVersion, onStartRide, onRemovePassenger }) {
+function Dashboard({ user, onLogout, rides, onOfferCreated, onJoinRide, onLeaveRide, onUserUpdate, joinedVersion, setJoinedVersion, onStartRide, onRemovePassenger, onMessagePassengers }) {
   const [selectedVehicle, setSelectedVehicle] = useState(null);
   const [fromLocation, setFromLocation] = useState('');
   const [toLocation, setToLocation] = useState('');
@@ -1493,9 +1493,10 @@ function Dashboard({ user, onLogout, rides, onOfferCreated, onJoinRide, onLeaveR
                       {user?.username && r.driverUsername === user.username && (
                         <div style={{ display:'flex', flexDirection:'column', gap:8, width:'100%' }}>
                           <button type="button" className="join-btn" onClick={()=> setPassengersModalRide(r)}>View Passengers</button>
-                          {!r.startedAt && (
-                            <button type="button" className="join-btn" style={{ background:'linear-gradient(135deg,#10b981,#059669)' }} onClick={()=> onStartRide?.(r)}>Start Ride & WhatsApp</button>
-                          )}
+                          <button type="button" className="join-btn" style={{ background:'linear-gradient(135deg,#10b981,#059669)' }} onClick={()=> onStartRide?.(r)}>
+                            {r.startedAt ? 'Ride Started' : 'Start Ride & WhatsApp'}
+                          </button>
+                          <button type="button" className="join-btn" style={{ background:'#2563eb' }} onClick={()=> onMessagePassengers?.(r)}>Message Passengers</button>
                         </div>
                       )}
                     </div>
@@ -1565,6 +1566,9 @@ function Dashboard({ user, onLogout, rides, onOfferCreated, onJoinRide, onLeaveR
           <div className="modal" style={{ maxWidth:480 }}>
             <div className="modal-header">
               <h3 style={{ marginBottom:0 }}>Passengers ({passengersModalRide.passengers?.length||0})</h3>
+              {passengersModalRide.driverUsername === user?.username && passengersModalRide.passengers?.length > 0 && (
+                <button type="button" className="join-btn" style={{ background:'#2563eb', padding:'6px 12px', fontSize:12 }} onClick={()=> onMessagePassengers?.(passengersModalRide)}>Message</button>
+              )}
             </div>
             <div className="modal-body" style={{ maxHeight:320, overflowY:'auto' }}>
               {(!passengersModalRide.passengers || passengersModalRide.passengers.length===0) && (
@@ -1872,6 +1876,33 @@ function ShareRideApp() {
     window.__notify && window.__notify('WhatsApp message prepared','success');
   };
 
+  // Driver broadcast message to passengers (simple first passenger target; driver can forward inside WhatsApp)
+  const handleMessagePassengers = (ride) => {
+    if (!ride) return;
+    if (!user || ride.driverUsername !== user.username) {
+      window.__notify && window.__notify('Only the driver can message passengers','error');
+      return;
+    }
+    const passengers = Array.isArray(ride.passengers) ? ride.passengers.filter(p => p.phone) : [];
+    if (!passengers.length) {
+      window.__notify && window.__notify('No passenger phone numbers to message','error');
+      return;
+    }
+    const remaining = typeof ride.seats === 'number' && Array.isArray(ride.passengers) ? (ride.seats - ride.passengers.length) : undefined;
+    const lines = [
+      'Ride Update',
+      `Route: ${ride.from} -> ${ride.to}`,
+      `Schedule: ${ride.date} ${ride.time}`,
+      remaining !== undefined ? `Seats Left: ${remaining < 0 ? 0 : remaining}` : null,
+      `Driver: @${ride.driverUsername}`
+    ].filter(Boolean);
+    const text = encodeURIComponent(lines.join('\n'));
+    const target = passengers[0].phone.replace(/[^+\d]/g,'').replace(/^\+/,'');
+    const url = `https://wa.me/${target}?text=${text}`;
+    window.open(url,'_blank');
+    window.__notify && window.__notify('WhatsApp message draft opened','success');
+  };
+
   const handleUserUpdate = (updatedUser) => {
     setUser(updatedUser);
     try {
@@ -1912,6 +1943,7 @@ function ShareRideApp() {
         joinedVersion={joinedVersion}
         setJoinedVersion={setJoinedVersion}
         onStartRide={handleStartRide}
+  onMessagePassengers={handleMessagePassengers}
         onRemovePassenger={(rideId, passengerUsername) => {
           let updatedRef = null;
           setRides(prev => {
