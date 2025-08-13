@@ -1641,13 +1641,31 @@ function Dashboard({ user, onLogout, rides, onOfferCreated, onJoinRide, onLeaveR
 function ShareRideApp() {
   const [user, setUser] = useState(null);
   const [isRegistering, setIsRegistering] = useState(false);
-  const [rides, setRides] = useState(() => {
-    try {
-      const stored = JSON.parse(localStorage.getItem('shareride_offered_rides') || '[]');
-      if (Array.isArray(stored) && stored.length) return stored;
-    } catch {}
-    return [...MOCK_RIDES];
-  });
+  const [rides, setRides] = useState([]);
+  const [apiReady,setApiReady] = useState(false);
+
+  // Initial fetch from API (fallback to local mock if fails)
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const res = await fetch('/api/rides');
+        if(!res.ok) throw new Error('net');
+        const data = await res.json();
+        if (Array.isArray(data.rides)) setRides(data.rides);
+        setApiReady(true);
+      } catch {
+        // fallback to local storage / mock
+        try {
+          const stored = JSON.parse(localStorage.getItem('shareride_offered_rides') || '[]');
+          if (Array.isArray(stored) && stored.length) setRides(stored); else setRides([...MOCK_RIDES]);
+        } catch { setRides([...MOCK_RIDES]); }
+        setApiReady(false);
+      }
+    };
+    load();
+    const id = setInterval(load, 15000); // poll every 15s for multi-device sync
+    return () => clearInterval(id);
+  }, []);
   const [joinedVersion,setJoinedVersion] = useState(0);
   const [joiningRide, setJoiningRide] = useState(null); // ride object user is attempting to join
   const [joinForm, setJoinForm] = useState({ phoneDigits:'' });
@@ -1729,12 +1747,18 @@ function ShareRideApp() {
     setUser(null);
   };
 
-  const handleOfferCreated = (ride) => {
-    setRides((prev) => {
-      const updated = [ride, ...prev];
-      try { localStorage.setItem('shareride_offered_rides', JSON.stringify(updated)); } catch {}
-      return updated;
-    });
+  const handleOfferCreated = async (ride) => {
+    if (apiReady) {
+      try {
+        const res = await fetch('/api/rides', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(ride) });
+        const data = await res.json();
+        if (Array.isArray(data.rides)) setRides(data.rides); else setRides(r => [ride, ...r]);
+      } catch {
+        setRides(r => { const updated=[ride,...r]; try{localStorage.setItem('shareride_offered_rides', JSON.stringify(updated));}catch{} return updated; });
+      }
+    } else {
+      setRides(r => { const updated=[ride,...r]; try{localStorage.setItem('shareride_offered_rides', JSON.stringify(updated));}catch{} return updated; });
+    }
   };
 
   const handleJoinRide = (ride) => {
@@ -1750,7 +1774,7 @@ function ShareRideApp() {
     setJoiningRide(ride);
   };
 
-  const submitJoinRide = () => {
+  const submitJoinRide = async () => {
     if (!joiningRide) return;
     try {
       const username = user?.username || 'me';
@@ -1790,7 +1814,7 @@ function ShareRideApp() {
       const enriched = { ...joiningRide, joinedAt };
       const updated = [enriched, ...arr];
       localStorage.setItem(key, JSON.stringify(updated));
-      setRides(prev => {
+      const applyLocal = () => setRides(prev => {
         const next = prev.map(r => {
           if (r.id === joiningRide.id) {
             const passengers = Array.isArray(r.passengers) ? [...r.passengers] : [];
@@ -1814,6 +1838,15 @@ function ShareRideApp() {
         try { localStorage.setItem('shareride_offered_rides', JSON.stringify(next)); } catch {}
         return next;
       });
+      if (apiReady) {
+        try {
+          const res = await fetch(`/api/rides/${joiningRide.id}/join`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ username, name: user?.full_name, phone: fullPhone }) });
+          const data = await res.json();
+          if (Array.isArray(data.rides)) setRides(data.rides); else applyLocal();
+        } catch { applyLocal(); }
+      } else {
+        applyLocal();
+      }
       window.__notify && window.__notify(`Successfully joined ride ${joiningRide.from} → ${joiningRide.to}`,'success');
       setJoiningRide(null);
       setJoinedVersion(v=>v+1);
@@ -1833,7 +1866,7 @@ function ShareRideApp() {
       const updatedJoined = arr.filter(r => r.id !== ride.id);
       localStorage.setItem(key, JSON.stringify(updatedJoined));
       // Remove passenger from offered ride passenger list
-      setRides(prev => {
+      const applyLocal = () => setRides(prev => {
         const next = prev.map(r => {
           if (r.id === ride.id && Array.isArray(r.passengers)) {
             return { ...r, passengers: r.passengers.filter(p => p.username !== username) };
@@ -1843,6 +1876,12 @@ function ShareRideApp() {
         try { localStorage.setItem('shareride_offered_rides', JSON.stringify(next)); } catch {}
         return next;
       });
+      if (apiReady) {
+        fetch(`/api/rides/${ride.id}/leave`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ username }) })
+          .then(r=>r.json())
+          .then(data => { if (Array.isArray(data.rides)) setRides(data.rides); else applyLocal(); })
+          .catch(()=> applyLocal());
+      } else { applyLocal(); }
       window.__notify && window.__notify('Left ride','success');
       setJoinedVersion(v=>v+1);
     } catch {
@@ -1857,6 +1896,9 @@ function ShareRideApp() {
       try { localStorage.setItem('shareride_offered_rides', JSON.stringify(next)); } catch {}
       return next;
     });
+    if (apiReady) {
+      fetch(`/api/rides/${ride.id}/start`, { method:'POST' });
+    }
     const passengers = Array.isArray(ride.passengers) ? ride.passengers : [];
     if (!passengers.length) {
       window.__notify && window.__notify('Ride started (no passengers yet)','success');
