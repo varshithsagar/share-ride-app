@@ -333,6 +333,7 @@ function OfferRideForm({ onBack, onOfferCreated, currentUser }) {
   const [toCoords, setToCoords] = useState(null);
   const [vehicleBase, setVehicleBase] = useState('car'); // bike | auto | car
   const [vehicleSubtype, setVehicleSubtype] = useState(null); // for bike/car
+  const handleNumberWheel = (e) => { e.preventDefault(); e.currentTarget.blur(); };
 
   const useMyLocation = async () => {
   if (!navigator.geolocation) return window.__notify && window.__notify('Geolocation not supported','error');
@@ -466,11 +467,11 @@ function OfferRideForm({ onBack, onOfferCreated, currentUser }) {
           <div className="location-inputs">
             <div className="location-input-group">
               <label className="location-label">Available Seats</label>
-              <input type="number" min="1" max="6" className="location-input" value={seats} onChange={(e) => setSeats(e.target.value)} />
+              <input type="number" min="1" max="6" className="location-input" value={seats} onChange={(e) => setSeats(e.target.value)} onWheel={handleNumberWheel} />
             </div>
             <div className="location-input-group">
               <label className="location-label">Price per Seat (₹)</label>
-              <input type="number" min="0" className="location-input" placeholder="Price per seat" value={price} onChange={(e) => setPrice(e.target.value)} />
+              <input type="number" min="0" className="location-input" placeholder="Price per seat" value={price} onChange={(e) => setPrice(e.target.value)} onWheel={handleNumberWheel} />
             </div>
           </div>
           <div className="location-inputs">
