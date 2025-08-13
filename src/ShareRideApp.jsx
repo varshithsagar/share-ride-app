@@ -293,42 +293,6 @@ function ProfileOverlay({ user, onClose, onSave, rides = [] }) {
           </div>
 
           <div className="sheet-divider" />
-          <div className="myrides-section">
-            <h3 className="myrides-title">My Rides</h3>
-            <div className="mini-ride-rows">
-              <div className="mini-ride-col">
-                <div className="mini-ride-heading">Offered</div>
-                <div className="mini-ride-list">
-                  {offeredRides.length === 0 ? (
-                    <div className="mini-empty">No rides yet</div>
-                  ) : (
-                    offeredRides.map(r => (
-                      <div key={r.id} className="mini-ride-card" title={`${r.from} → ${r.to}`}>
-                        <div className="mini-route">{r.from} → {r.to}</div>
-                        <div className="mini-meta">{r.date} • {r.time}</div>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </div>
-              <div className="mini-ride-col">
-                <div className="mini-ride-heading">Joined</div>
-                <div className="mini-ride-list">
-                  {joinedRides.length === 0 ? (
-                    <div className="mini-empty">No rides yet</div>
-                  ) : (
-                    joinedRides.map((r, idx) => (
-                      <div key={r.id || idx} className="mini-ride-card" title={`${r.from} → ${r.to}`}>
-                        <div className="mini-route">{r.from} → {r.to}</div>
-                        <div className="mini-meta">{r.date} • {r.time}</div>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-          <div className="sheet-divider" />
           <button type="button" className="change-pass-btn" onClick={()=>setShowPw(s=>!s)}>
             <LuLock className="icon" aria-hidden="true" /> Change Password
           </button>
@@ -980,6 +944,17 @@ function Dashboard({ user, onLogout, rides, onOfferCreated, onJoinRide, onUserUp
   const [showResults, setShowResults] = useState(false);
   const [quickRideMode, setQuickRideMode] = useState(false);
   const [quickRideWindow, setQuickRideWindow] = useState(null); // { start: Date, end: Date }
+  const [joinedVersion, setJoinedVersion] = useState(0);
+
+  // derive offered rides for user
+  const offeredRides = (rides||[]).filter(r => user?.full_name && r.driver === user.full_name);
+  // derive joined rides from localStorage
+  const joinedRides = (() => {
+    try {
+      const list = JSON.parse(localStorage.getItem(`shareride_joined_${user?.username || 'me'}`) || '[]');
+      return Array.isArray(list) ? list : [];
+    } catch { return []; }
+  })();
 
   const startQuickRide = () => {
     setShowQuickRide(true);
@@ -1447,6 +1422,46 @@ function Dashboard({ user, onLogout, rides, onOfferCreated, onJoinRide, onUserUp
           )}
         </div>
       )}
+      {/* External My Rides section */}
+      <div className="available-rides" style={{ marginTop: 24 }}>
+        <div className="rides-header">
+          <h3>My Rides</h3>
+          <button className="reset-search-btn" type="button" onClick={()=>setJoinedVersion(v=>v+1)}>Refresh</button>
+        </div>
+        <div className="ride-cards" style={{ gap: 12 }}>
+          <div style={{ flex: 1, minWidth: '100%' }}>
+            <h4 style={{ margin: '4px 0 8px', fontSize: 14, textTransform:'uppercase', letterSpacing:'.5px', color:'#374151' }}>Offered</h4>
+            {offeredRides.length === 0 ? <div className="history-empty" style={{ padding: 16 }}>No offered rides</div> : (
+              <div className="ride-cards" style={{ padding:0 }}>
+                {offeredRides.map(r => (
+                  <div key={r.id} className="ride-card" style={{ margin:0 }}>
+                    <div className="ride-info">
+                      <p><strong>{r.from}</strong> → <strong>{r.to}</strong></p>
+                      <p>{r.date} • {r.time}</p>
+                      {r.vehicle && <p>{r.vehicle}</p>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+            <h4 style={{ margin: '20px 0 8px', fontSize: 14, textTransform:'uppercase', letterSpacing:'.5px', color:'#374151' }}>Joined</h4>
+            {joinedRides.length === 0 ? <div className="history-empty" style={{ padding: 16 }}>No joined rides</div> : (
+              <div className="ride-cards" style={{ padding:0 }}>
+                {joinedRides.map((r, idx) => (
+                  <div key={r.id || idx} className="ride-card" style={{ margin:0 }}>
+                    <div className="ride-info">
+                      <p><strong>{r.from}</strong> → <strong>{r.to}</strong></p>
+                      <p>{r.date} • {r.time}</p>
+                      {r.vehicle && <p>{r.vehicle}</p>}
+                      <p style={{ fontSize:12, color:'#6b7280' }}>Driver: {r.driver}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
       {showProfile && (
         <ProfileOverlay
           user={user}
