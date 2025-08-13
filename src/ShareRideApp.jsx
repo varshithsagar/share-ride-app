@@ -1568,6 +1568,7 @@ function ShareRideApp() {
 
   return (
     <div className="app-container">
+  <SuccessBanner />
       <ToastHost />
       <Dashboard
         user={user}
@@ -1590,6 +1591,7 @@ function ToastHost(){
     window.__notify = (msg, type='info', duration=3000) => {
       const id = Date.now()+Math.random();
       setToasts(t=>[...t,{id,msg,type}]);
+      try { window.dispatchEvent(new CustomEvent('app:notify',{ detail:{ id, msg, type }})); } catch {}
       setTimeout(()=>{ setToasts(t=> t.filter(x=>x.id!==id)); }, duration);
     };
     return ()=>{ delete window.__notify; };
@@ -1599,6 +1601,32 @@ function ToastHost(){
       {toasts.map(t => (
         <div key={t.id} className={`toast toast-${t.type}`}>{t.msg}</div>
       ))}
+    </div>
+  );
+}
+
+// Prominent success banner for better visibility of successful actions
+function SuccessBanner(){
+  const [visible,setVisible]=useState(false);
+  const [message,setMessage]=useState('');
+  useEffect(()=>{
+    const handler = (e)=>{
+      const { msg, type } = e.detail || {};
+      if(type==='success'){
+        setMessage(msg);
+        setVisible(true);
+        const timer = setTimeout(()=> setVisible(false), 4000);
+        return () => clearTimeout(timer);
+      }
+    };
+    window.addEventListener('app:notify', handler);
+    return ()=> window.removeEventListener('app:notify', handler);
+  },[]);
+  if(!visible) return null;
+  return (
+    <div className="success-banner" role="status" aria-live="polite">
+      <span className="success-banner-text">✅ {message}</span>
+      <button type="button" className="success-banner-close" onClick={()=>setVisible(false)} aria-label="Dismiss success message">×</button>
     </div>
   );
 }
