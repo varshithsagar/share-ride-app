@@ -463,6 +463,13 @@ body::before {
   background: linear-gradient(135deg, rgba(245, 87, 108, 0.22), rgba(245, 87, 108, 0.08));
   filter: blur(1.2px);
 }
+/* Toast notifications */
+.toast-stack { position: fixed; top: 16px; right: 16px; display:flex; flex-direction:column; gap:10px; z-index: 9999; width: min(280px, 90vw); }
+.toast { padding:12px 16px; border-radius:12px; font-size:14px; font-weight:600; box-shadow:0 8px 24px -4px rgba(0,0,0,.15); animation: fadeSlide .3s ease; color:#fff; backdrop-filter: blur(6px); }
+.toast-info { background: linear-gradient(135deg,#3b82f6,#2563eb); }
+.toast-success { background: linear-gradient(135deg,#10b981,#059669); }
+.toast-error { background: linear-gradient(135deg,#ef4444,#dc2626); }
+@keyframes fadeSlide { from { opacity:0; transform: translateY(-6px) scale(.95);} to { opacity:1; transform: translateY(0) scale(1);} }
 
 @keyframes float {
   0% {

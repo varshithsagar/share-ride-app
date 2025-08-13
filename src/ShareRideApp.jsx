@@ -131,7 +131,7 @@ function ProfileOverlay({ user, onClose, onSave, rides = [] }) {
 
   const handleSave = async () => {
     if (!form.full_name || !form.username || !form.email || !form.phone) {
-      alert('Please fill all fields');
+      window.__notify && window.__notify('Please fill all fields', 'error');
       return;
     }
     setSaving(true);
@@ -307,8 +307,8 @@ function ProfileOverlay({ user, onClose, onSave, rides = [] }) {
               <div className="sheet-actions" style={{marginTop:8}}>
                 <button type="button" className="cancel-profile-btn" onClick={()=>{ setPwData({current:'',next:'',confirm:''}); setShowPw(false);} }>Cancel</button>
                 <button type="button" className="save-profile-btn" onClick={()=>{
-                  if (!pwData.next || pwData.next !== pwData.confirm) { alert('Passwords do not match'); return; }
-                  try { const key='shareride_pw_overrides'; const map=JSON.parse(localStorage.getItem(key)||'{}'); map[form.username||user?.username]=pwData.next; localStorage.setItem(key, JSON.stringify(map)); alert('Password updated for this device'); setShowPw(false); setPwData({current:'',next:'',confirm:''}); } catch {}
+                  if (!pwData.next || pwData.next !== pwData.confirm) { window.__notify && window.__notify('Passwords do not match','error'); return; }
+                  try { const key='shareride_pw_overrides'; const map=JSON.parse(localStorage.getItem(key)||'{}'); map[form.username||user?.username]=pwData.next; localStorage.setItem(key, JSON.stringify(map)); window.__notify && window.__notify('Password updated','success'); setShowPw(false); setPwData({current:'',next:'',confirm:''}); } catch {}
                 }}>Save Password</button>
               </div>
             </div>
@@ -335,27 +335,27 @@ function OfferRideForm({ onBack, onOfferCreated, currentUser }) {
   const [vehicleSubtype, setVehicleSubtype] = useState(null); // for bike/car
 
   const useMyLocation = async () => {
-    if (!navigator.geolocation) return alert('Geolocation not supported');
+  if (!navigator.geolocation) return window.__notify && window.__notify('Geolocation not supported','error');
     navigator.geolocation.getCurrentPosition((pos) => {
       const { latitude, longitude } = pos.coords;
       setFromCoords({ lat: latitude, lng: longitude });
       if (!from) setFrom('My current location');
   // ready to set destination next
-    }, () => alert('Unable to get location'));
+  }, () => window.__notify && window.__notify('Unable to get location','error'));
   };
 
   const onSubmit = (e) => {
     e.preventDefault();
     if (!from || !to || !date || !time || !seats) {
-      alert('Please fill From, To, Date, Time, and Seats');
+      window.__notify && window.__notify('Fill From, To, Date, Time & Seats','error');
       return;
     }
     if (!vehicleBase) {
-      alert('Please select vehicle type');
+      window.__notify && window.__notify('Select vehicle type','error');
       return;
     }
     if ((vehicleBase === 'bike' || vehicleBase === 'car') && !vehicleSubtype) {
-      alert(`Please select a ${vehicleBase} type`);
+      window.__notify && window.__notify(`Select a ${vehicleBase} subtype`,'error');
       return;
     }
     const ride = {
@@ -375,7 +375,7 @@ function OfferRideForm({ onBack, onOfferCreated, currentUser }) {
       pickup: 'As arranged',
     };
     onOfferCreated?.(ride);
-    alert('Ride offered!\n' + JSON.stringify(ride, null, 2));
+    window.__notify && window.__notify('Ride offered','success');
     onBack?.();
   };
 
@@ -517,7 +517,7 @@ function BikeTypeSelection({ onBack, onSelect, distance }) {
                 <button type="button" className="btn-choose" onClick={() => onSelect(b)}>
                   Select
                 </button>
-                <button type="button" className="btn-outline" onClick={() => alert(`${b.name} - ${b.note}`)}>
+                <button type="button" className="btn-outline" onClick={() => window.__notify && window.__notify(`${b.name} – ${b.note}`,'info')}>
                   Details
                 </button>
               </div>
@@ -554,7 +554,7 @@ function CarTypeSelection({ onBack, onSelect, distance }) {
                 <button type="button" className="btn-choose" onClick={() => onSelect(c)}>
                   Select
                 </button>
-                <button type="button" className="btn-outline" onClick={() => alert(`${c.name} - ${c.note}`)}>
+                <button type="button" className="btn-outline" onClick={() => window.__notify && window.__notify(`${c.name} – ${c.note}`,'info')}>
                   Details
                 </button>
               </div>
@@ -660,7 +660,7 @@ function VehicleSelection({ selectedVehicle, onVehicleSelect, distance = 25 }) {
                 <button
                   type="button"
                   className="btn-outline"
-                  onClick={(e) => { e.stopPropagation(); alert(`${vehicle.name}: ${vehicle.seats}, ${vehicle.bags}, AC`); }}
+                  onClick={(e) => { e.stopPropagation(); window.__notify && window.__notify(`${vehicle.name}: ${vehicle.seats}, ${vehicle.bags}, AC`,'info'); }}
                   aria-label={`${vehicle.name} details`}
                 >
                   Details
@@ -971,7 +971,7 @@ function Dashboard({ user, onLogout, rides, onOfferCreated, onJoinRide, onUserUp
 
   const confirmQuickRide = async () => {
     if (!qrFrom || !qrTo) {
-      alert('Please enter From and To');
+      window.__notify && window.__notify('Enter From & To','error');
       return;
     }
     setQrBusy(true);
@@ -1356,8 +1356,8 @@ function Dashboard({ user, onLogout, rides, onOfferCreated, onJoinRide, onUserUp
                   <input type="text" className="location-input" placeholder="Your pickup" value={qrFrom} onChange={(e)=>setQrFrom(e.target.value)} />
                   <div style={{ display:'flex', gap:8, marginTop:8 }}>
                     <button type="button" className="btn-outline" onClick={() => {
-                      if (!navigator.geolocation) return alert('Geolocation not supported');
-                      navigator.geolocation.getCurrentPosition(() => setQrFrom('My current location'), () => alert('Location unavailable'));
+                      if (!navigator.geolocation) return window.__notify && window.__notify('Geolocation not supported','error');
+                      navigator.geolocation.getCurrentPosition(() => setQrFrom('My current location'), () => window.__notify && window.__notify('Location unavailable','error'));
                     }}>Use my location</button>
                   </div>
                 </div>
@@ -1538,7 +1538,7 @@ function ShareRideApp() {
       const updated = Array.isArray(list) ? [...list, ride] : [ride];
       localStorage.setItem(key, JSON.stringify(updated));
     } catch {}
-    alert(`Ride joined!\n${ride.from} → ${ride.to} on ${ride.date} at ${ride.time}`);
+    window.__notify && window.__notify('Ride joined','success');
   };
 
   const handleUserUpdate = (updatedUser) => {
@@ -1568,6 +1568,7 @@ function ShareRideApp() {
 
   return (
     <div className="app-container">
+      <ToastHost />
       <Dashboard
         user={user}
         onLogout={handleLogout}
@@ -1581,3 +1582,23 @@ function ShareRideApp() {
 }
 
 export default ShareRideApp;
+
+// Toast system host component (must be after default export to avoid hoist issues for earlier usage)
+function ToastHost(){
+  const [toasts,setToasts]=useState([]);
+  useEffect(()=>{
+    window.__notify = (msg, type='info', duration=3000) => {
+      const id = Date.now()+Math.random();
+      setToasts(t=>[...t,{id,msg,type}]);
+      setTimeout(()=>{ setToasts(t=> t.filter(x=>x.id!==id)); }, duration);
+    };
+    return ()=>{ delete window.__notify; };
+  },[]);
+  return (
+    <div className="toast-stack" role="status" aria-live="polite">
+      {toasts.map(t => (
+        <div key={t.id} className={`toast toast-${t.type}`}>{t.msg}</div>
+      ))}
+    </div>
+  );
+}
