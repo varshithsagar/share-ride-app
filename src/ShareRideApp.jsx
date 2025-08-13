@@ -1650,7 +1650,7 @@ function ShareRideApp() {
   });
   const [joinedVersion,setJoinedVersion] = useState(0);
   const [joiningRide, setJoiningRide] = useState(null); // ride object user is attempting to join
-  const [joinForm, setJoinForm] = useState({ phone:'' });
+  const [joinForm, setJoinForm] = useState({ phoneDigits:'' });
   const joinPhoneRef = useRef(null);
   const [joinPhoneError, setJoinPhoneError] = useState('');
 
@@ -1738,8 +1738,15 @@ function ShareRideApp() {
   };
 
   const handleJoinRide = (ride) => {
-    // open modal with phone prefill if user has phone
-    setJoinForm({ phone: user?.phone || '' });
+    // Pre-fill digits from stored user phone if Indian format
+    let digits = '';
+    if (user?.phone) {
+      const cleaned = user.phone.replace(/[^\d]/g,'');
+      // If contains country code 91 and total length >=12, take last 10 digits
+      if (cleaned.startsWith('91') && cleaned.length >= 12) digits = cleaned.slice(-10);
+      else if (cleaned.length === 10) digits = cleaned; // already 10 digits
+    }
+    setJoinForm({ phoneDigits: digits });
     setJoiningRide(ride);
   };
 
@@ -1755,19 +1762,18 @@ function ShareRideApp() {
         setJoiningRide(null);
         return;
       }
-      // Phone validation (optional field). Accept E.164: + followed by 8-15 digits.
-      // Allow user to type spaces, dashes, parentheses which we strip before validation.
-      const phoneTrim = joinForm.phone.trim();
-      const phoneNormalized = phoneTrim.replace(/[\s\-()]/g,'');
-      if (phoneNormalized) {
-        const phoneOk = /^\+[1-9]\d{7,14}$/.test(phoneNormalized);
-        if (!phoneOk) {
-          setJoinPhoneError('Invalid phone format. Use + followed by 8-15 digits (e.g. +919876543210)');
-          window.__notify && window.__notify('Invalid phone format','error');
+      // Indian phone handling: optional field; if entered must be 10 digits starting 6-9
+      const digits = (joinForm.phoneDigits||'').replace(/\D/g,'');
+      let fullPhone = '';
+      if (digits) {
+        const valid = /^[6-9]\d{9}$/.test(digits);
+        if (!valid) {
+          setJoinPhoneError('Enter 10-digit Indian mobile (starts 6-9)');
+          window.__notify && window.__notify('Invalid phone number','error');
           return;
-        } else {
-          setJoinPhoneError('');
         }
+        setJoinPhoneError('');
+        fullPhone = `+91 ${digits}`;
       } else {
         setJoinPhoneError('');
       }
@@ -1794,13 +1800,13 @@ function ShareRideApp() {
               profileSnapshot = {
                 full_name: user?.full_name,
                 email: user?.email,
-                phone: (joinForm.phone.trim() || user?.phone || ''),
+                phone: (fullPhone || user?.phone || ''),
                 gender: user?.gender || '',
                 birth: user?.birth || '',
                 avatar: user?.avatar || localStorage.getItem(`shareride_avatar_${username}`) || ''
               };
             } catch {}
-            passengers.push({ username, name: user?.full_name, phone: joinForm.phone.trim(), joinedAt, profile: profileSnapshot });
+            passengers.push({ username, name: user?.full_name, phone: fullPhone, joinedAt, profile: profileSnapshot });
             return { ...r, passengers };
           }
           return r;
@@ -1985,10 +1991,18 @@ function ShareRideApp() {
                   <strong>Schedule:</strong> {joiningRide.date} • {joiningRide.time}
                 </div>
                 <div className="location-input-group">
-                  <label className="location-label">WhatsApp Phone <span style={{ fontWeight:400, fontSize:11, color:'#6b7280' }}>(optional)</span></label>
-                  <input ref={joinPhoneRef} className="location-input" style={joinPhoneError?{borderColor:'#dc2626'}:undefined} placeholder="e.g. +919876543210" value={joinForm.phone} onChange={(e)=> { const v=e.target.value; setJoinForm(f=>({...f,phone:v})); const cleaned = v.trim().replace(/[\s\-()]/g,''); if(!cleaned){ setJoinPhoneError(''); } else if(!/^\+[1-9]\d{7,14}$/.test(cleaned)) { setJoinPhoneError('Invalid format'); } else { setJoinPhoneError(''); } }} />
+                  <label className="location-label">WhatsApp Phone (India) <span style={{ fontWeight:400, fontSize:11, color:'#6b7280' }}>(optional)</span></label>
+                  <div style={{ display:'flex', alignItems:'center', gap:6 }}>
+                    <div style={{ background:'#e5e7eb', padding:'8px 10px', borderRadius:8, fontSize:14, fontWeight:500, color:'#111827' }}>+91</div>
+                    <input ref={joinPhoneRef} maxLength={10} inputMode="numeric" className="location-input" style={{ flex:1, ...(joinPhoneError?{borderColor:'#dc2626'}:{}) }} placeholder="10-digit mobile" value={joinForm.phoneDigits} onChange={(e)=> {
+                      const raw = e.target.value.replace(/\D/g,'');
+                      setJoinForm(f=>({...f, phoneDigits: raw}));
+                      if(!raw){ setJoinPhoneError(''); return; }
+                      if(!/^[6-9]\d{9}$/.test(raw)) setJoinPhoneError('Invalid number'); else setJoinPhoneError('');
+                    }} />
+                  </div>
                   <div style={{ fontSize:11, color: joinPhoneError? '#dc2626':'#6b7280', marginTop:4 }}>
-                    {joinPhoneError || 'Only driver (and you) can see this number.'}
+                    {joinPhoneError || 'Enter 10 digits (e.g. 9014068542). Stored as +91 XXXXX XXXXX'}
                   </div>
                 </div>
               </div>
