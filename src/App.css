@@ -1,3 +1,16 @@
+/* Force black color for login/registration form labels */
+.login-form label,
+.form-container label {
+  color: #000 !important;
+  text-shadow: none !important;
+}
+/* Force black text for login/registration input fields */
+.login-form input[type="text"],
+.login-form input[type="password"],
+.login-form input[type="email"] {
+  color: #000 !important;
+  background: #fff !important;
+}
 /* Universal Rule - Ensure ALL User Input Text is Black (Constant) */
 input, 
 textarea, 
@@ -1547,7 +1560,7 @@ button:active {
   width: 100%;
   padding: 18px 20px;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  color: #000 !important;
   border: none;
   border-radius: 12px;
   font-size: 17px;
@@ -2207,7 +2220,7 @@ button:active {
 /* Enhanced link button for prominent signup/login navigation */
 .link-button {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white !important;
+  color: #000 !important;
   border: none;
   padding: 14px 28px;
   border-radius: 12px;
@@ -2245,6 +2258,7 @@ button:active {
 
 /* Enhanced login footer styling */
 .login-footer {
+  color: #000 !important;
   text-align: center;
   margin-top: 24px;
   margin-bottom: 20px;
